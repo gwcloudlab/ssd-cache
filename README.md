@@ -8,6 +8,7 @@ Works only with Ubuntu 13.10 or higher with linux 3.10 or higher.
 sundarcs@nimbnode19:~|⇒  uname -a
 Linux nimbnode19 3.13.0-32-generic #57-Ubuntu SMP Tue Jul 15 03:51:08 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
 
+```
 sundarcs@nimbnode19:~|⇒  sudo lsblk
 NAME                         MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
 sda                            8:0    0 465.8G  0 disk
@@ -22,12 +23,14 @@ sdc                            8:32   0 186.3G  0 disk     **SSD**
 sdd                            8:48   0 465.8G  0 disk     **HDD**
 sde                            8:64   0 465.8G  0 disk     **HDD**
 sdf                            8:80   0 465.8G  0 disk     **HDD**
+```
 
-
+```
 sundarcs@nimbnode19:~|⇒  sudo gparted 2> /dev/null
 ======================
 libparted : 2.3
 ======================
+```
 
 ***
 Create sdc1(the SSD), sdd1(1st HDD), sde1(2nd HDD) with ext4. We will wipe sdc1’s filestsyem in the forth coming steps but it is necessary to create that partition first or else it throws an "wipefs: WARNING: /dev/sd*: appears to contain 'dos' partition table” error.
@@ -45,7 +48,7 @@ sundarcs@nimbnode19:~|⇒  sudo wipefs -a /dev/sde1
 2 bytes were erased at offset 0x438 (ext4)
 they were: 53 ef
 
-
+```
 sundarcs@nimbnode19:~|⇒  sudo make-bcache -C /dev/sdc1
 UUID:                   0d0eed81-319f-46c9-99e4-498d21bf5af5
 Set UUID:               d55cb762-68fe-4553-9dd7-022e77065af9 (This will be the UUID that you will be attaching to as many hard disks as you are trying to cache. You will NOT be attaching the hdd UUID's)
@@ -70,7 +73,7 @@ Set UUID:               b17796db-59f3-491f-baac-119325c69cb7 (You will not use t
 version:                1
 block_size:             1
 data_offset:            16
-
+```
 
 sundarcs@nimbnode19:~|⇒  sudo su
 root@nimbnode19:/home/sundarcs# echo d55cb762-68fe-4553-9dd7-022e77065af9 > /s
@@ -131,6 +134,7 @@ Writing superblocks and filesystem accounting information: done
 root@nimbnode19:/home/sundarcs# mount /dev/bcache0 /mnt/hdd1/
 root@nimbnode19:/home/sundarcs# mount /dev/bcache1 /mnt/hdd2/
 
+```
 sundarcs@nimbnode19:~|⇒  sudo lsblk
 NAME                         MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
 sda                            8:0    0 465.8G  0 disk
@@ -152,3 +156,4 @@ sde                            8:64   0 465.8G  0 disk
 └─sde1                         8:65   0 465.8G  0 part
   └─bcache1                  251:1    0 465.8G  0 disk /mnt/hdd2
 sdf                            8:80   0 465.8G  0 disk
+```
