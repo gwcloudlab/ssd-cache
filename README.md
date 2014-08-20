@@ -4,9 +4,10 @@ ssd-cache
 
 Works only with Ubuntu 13.10 or higher with linux 3.10 or higher.
 
-
+```
 sundarcs@nimbnode19:~|⇒  uname -a
 Linux nimbnode19 3.13.0-32-generic #57-Ubuntu SMP Tue Jul 15 03:51:08 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
+```
 
 ```
 sundarcs@nimbnode19:~|⇒  sudo lsblk
@@ -25,6 +26,8 @@ sde                            8:64   0 465.8G  0 disk     **HDD**
 sdf                            8:80   0 465.8G  0 disk     **HDD**
 ```
 
+Create sdc1 (SSD), sdd1 (1st HDD), sde1 (2nd HDD) with ext4. We will wipe sdc1’s filestsyem in the forth coming steps but it is necessary to create that partition first or else it throws an `wipefs: WARNING: /dev/sd*: appears to contain 'dos' partition table` error.
+
 ```
 sundarcs@nimbnode19:~|⇒  sudo gparted 2> /dev/null
 ======================
@@ -32,22 +35,22 @@ libparted : 2.3
 ======================
 ```
 
-***
-Create sdc1(the SSD), sdd1(1st HDD), sde1(2nd HDD) with ext4. We will wipe sdc1’s filestsyem in the forth coming steps but it is necessary to create that partition first or else it throws an "wipefs: WARNING: /dev/sd*: appears to contain 'dos' partition table” error.
-***
-
-
+```
 sundarcs@nimbnode19:~|⇒  sudo wipefs -a /dev/sdc1
 2 bytes were erased at offset 0x438 (ext4)
 they were: 53 ef
+```
 
+```
 sundarcs@nimbnode19:~|⇒  sudo wipefs -a /dev/sdd1
 2 bytes were erased at offset 0x438 (ext4)
 they were: 53 ef
+```
+```
 sundarcs@nimbnode19:~|⇒  sudo wipefs -a /dev/sde1
 2 bytes were erased at offset 0x438 (ext4)
 they were: 53 ef
-
+```
 ```
 sundarcs@nimbnode19:~|⇒  sudo make-bcache -C /dev/sdc1
 UUID:                   0d0eed81-319f-46c9-99e4-498d21bf5af5
@@ -75,10 +78,20 @@ block_size:             1
 data_offset:            16
 ```
 
+```
 sundarcs@nimbnode19:~|⇒  sudo su
+```
+
+```
 root@nimbnode19:/home/sundarcs# echo d55cb762-68fe-4553-9dd7-022e77065af9 > /s
 ys/block/bcache0/bcache/attach
+```
+
+```
 root@nimbnode19:/home/sundarcs# echo d55cb762-68fe-4553-9dd7-022e77065af9 > /sys/block/bcache1/bcache/attach
+```
+
+```
 root@nimbnode19:/home/sundarcs# mkfs.ext4 /dev/bcache0
 mke2fs 1.42.9 (4-Feb-2014)
 Discarding device blocks: done
@@ -105,7 +118,9 @@ Creating journal (32768 blocks): done
 Writing superblocks and filesystem accounting information: done
 
 Writing superblocks and filesystem accounting information: done
+```
 
+```
 root@nimbnode19:/home/sundarcs# mkfs.ext4 /dev/bcache1
 mke2fs 1.42.9 (4-Feb-2014)
 Discarding device blocks: done
@@ -130,9 +145,15 @@ Allocating group tables: done
 Writing inode tables: done
 Creating journal (32768 blocks): done
 Writing superblocks and filesystem accounting information: done
+```
 
+```
 root@nimbnode19:/home/sundarcs# mount /dev/bcache0 /mnt/hdd1/
+```
+
+```
 root@nimbnode19:/home/sundarcs# mount /dev/bcache1 /mnt/hdd2/
+```
 
 ```
 sundarcs@nimbnode19:~|⇒  sudo lsblk
