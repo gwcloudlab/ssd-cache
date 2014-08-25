@@ -1,1 +1,1 @@
-Build and run cache-sim.py
+Build and run ```cache-sim.py```
