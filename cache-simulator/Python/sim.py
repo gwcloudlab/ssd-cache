@@ -15,19 +15,19 @@ class Sim(object):
 		self.filename 	= filename
 		self.blocksize 	= blocksize
 		self.cachesize 	= cachesize
-		self.state = {
-			"misses"	: 0,
-			"hits"		: 0,
-			"evictions"	: 0  
-		}
-
-		self.config = {
-			"blocksize": blocksize,
-			"cachesize": cachesize
-		}
+		self.max_Cacheblocks = cachesize/blocksize
+		self.config 	= {
+							"blocksize": blocksize,
+							"cachesize": cachesize
+						}
+		self.state 		= {
+							"misses"	: 0,
+							"hits"		: 0,
+							"evictions"	: 0  
+						}
 
 	def checkFreeSpace(self):
-		if (len(self.ssd) < cachesize/blocksize):
+		if (len(self.ssd) < self.max_Cacheblocks):
 			return True
 		else:
 			return False
@@ -37,7 +37,7 @@ class Sim(object):
 
 	def sim_read(self, block_address, disk_id):
 		'''
-		Check if the block is in the cache and update the stats
+		Check if the block is in the cache, update the stats
 		for that object. If not call insert funtion and handle the miss
 		'''
 		if ((block_address, disk_id) in self.ssd):
@@ -50,19 +50,19 @@ class Sim(object):
 
 	def insert(self, block_address, disk_id):
 		new_cache_block = cache.Cache()
-  		if self.checkFreeSpace:
+  		if self.checkFreeSpace():
   			self.ssd[block_address, disk_id] = new_cache_block
   		else:
   			self.state["evictions"] += 1
-  			lowest_lru = self.ssd[0][0] #Assign the first element's lru
-  			index = 0
+  			lowest_lru = self.ssd.keys()[0][0]
+  			indx = self.ssd.keys()[0][1]
   			for key, cache_block in self.ssd.iteritems():
   				if cache_block.get_lru() < lowest_lru:
-  					lowest_lru = cache_block.lru
+  					lowest_lru = cache_block
   					indx = key
-  			self.ssd[key] = new_cache_block
-  			self.ssd[key].increment_lru()
-  			self.ssd[block_address, disk_id].increment_accesses()
+  			self.ssd[indx, lowest_lru] = new_cache_block
+  			self.ssd[indx, lowest_lru].increment_lru()
+  			self.ssd[indx, lowest_lru].increment_accesses()
 
 
    	def delete(self):

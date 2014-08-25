@@ -13,7 +13,7 @@ class Cache(object):
       128: 15 }
 
    """docstring for Cache"""
-   def __init__(self, blocksize=16, size=64):
+   def __init__(self):
       self.lru       = 0
       self.accesses  = 0
       self.valid     = 0
@@ -33,6 +33,9 @@ class Cache(object):
 
    def increment_lru(self):
       self.lru += 1
+
+   def decrement_lru(self):
+      self.lru -= 1
 
    def increment_accesses(self):
       self.accesses += 1
