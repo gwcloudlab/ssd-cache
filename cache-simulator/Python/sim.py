@@ -55,14 +55,12 @@ class Sim(object):
   		else:
   			self.state["evictions"] += 1
   			lowest_lru = self.ssd.keys()[0][0]
-  			indx = self.ssd.keys()[0][1]
+  			indx = self.ssd.keys()[0]
   			for key, cache_block in self.ssd.iteritems():
   				if cache_block.get_lru() < lowest_lru:
-  					lowest_lru = cache_block
   					indx = key
-  			self.ssd[indx, lowest_lru] = new_cache_block
-  			self.ssd[indx, lowest_lru].increment_lru()
-  			self.ssd[indx, lowest_lru].increment_accesses()
+  			del self.ssd[indx]
+  			self.ssd[block_address, disk_id] = new_cache_block
 
 
    	def delete(self):
