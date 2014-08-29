@@ -7,6 +7,7 @@ from operator import itemgetter
 import os
 import csv
 import cache
+import pdb
 
 
 class IndexedOrderedDict(OrderedDict):
@@ -44,14 +45,16 @@ class IndexedOrderedDict(OrderedDict):
 
 class Sim(object):
 
-    def __init__(self, filename=None, blocksize=16, cachesize=256):
+    def __init__(self, filename=None, blocksize=8, cachesize=80):
         self.EVICT_POLICY = "weightedLRU"
-        self.ssd = IndexedOrderedDict()  # This will be the actual cache
+        # This will be the actual cache
+        self.ssd = IndexedOrderedDict(key=lambda k: k[1])
         self.filename = filename
         self.blocksize = blocksize
         self.cachesize = cachesize
+        # max size and self.weight's sum should be equal
         self.maxsize = cachesize / blocksize
-        self.weight = {1: 2, 2: 2, 3: 1, 4: 2}
+        self.weight = {1: 4, 2: 3, 3: 2, 4: 1}
         self.counter = {}
         self.config = {
             "blocksize": blocksize,
@@ -64,7 +67,7 @@ class Sim(object):
         }
 
     def checkFreeSpace(self, UUID):
-        if (len(self.ssd) <= self.maxsize):
+        if (len(self.ssd) < self.maxsize):
             if self.EVICT_POLICY == "staticLRU":
                 return self.ssd.counter[UUID[1]] <= self.weight[UUID[1]]
             else:  # Both global and weighted LRU care only about maxsize
@@ -75,7 +78,7 @@ class Sim(object):
         pass
 
     def sim_read(self, UUID):
-        if ((UUID) in self.ssd):
+        if (UUID in self.ssd):
             cache_contents = self.ssd.pop(UUID)
             self.ssd[UUID] = cache_contents
             self.ssd[UUID].set_lru()
@@ -99,16 +102,31 @@ class Sim(object):
         if self.EVICT_POLICY == "weightedLRU":
             delta = Counter(self.ssd.counter) - Counter(self.weight)
             # Negative values are ignored in the above expression.
-            # To not ignore use:
+            # We don't need them. To not ignore use:
             # delta =  k: self.ssd.counter.get(k, 0) - self.weight.get(k, 0)
             # for k in set(self.ssd.counter) & set(self.weight) }
-            item_to_be_evicted = max(delta.iteritems(), key=itemgetter(1))[0]
-            self.ssd.pop(item_to_be_evicted)
+            try:
+                id_to_be_evicted = max(delta.iteritems(), key=itemgetter(1))[0]
+            except ValueError:
+                # If all items are exactly equal to their weight
+                # delta would be an empty sequence.
+                self.ssd.popitem(last=False)
+            else:
+                # print self.ssd.keys()
+                # print "Counter = ", self.ssd.counter
+                # print "weight = ", self.weight
+                # print "Delta = ", delta
+                # print "ID to be evicted = ", id_to_be_evicted
+                for item_to_be_evicted in self.ssd.keys():
+                    if item_to_be_evicted[1] == id_to_be_evicted:
+                        self.ssd.pop(item_to_be_evicted)
+                        break
         elif self.EVICT_POLICY == "staticLRU":
             # pop the first element that matches with the disk id
             for item_to_be_evicted in self.ssd.keys():
                 if item_to_be_evicted[1] == UUID[1]:
                     self.ssd.pop(item_to_be_evicted)
+                    break
         else:
             self.ssd.popitem(last=False)
 
@@ -118,7 +136,7 @@ class Sim(object):
     def print_stats(self):
         print self.config
         print self.state
-        print self.ssd
+        print self.ssd.keys()
 
     # Zero out cache blocks/flags/values
     def resetCache(self):
@@ -136,6 +154,8 @@ class Sim(object):
                         self.sim_read(UUID)
                     else:
                         self.sim_write(UUID)
+                    # print self.ssd.keys()
+                    # pdb.set_trace()
             self.print_stats()
             return True
         except IOError as error:
