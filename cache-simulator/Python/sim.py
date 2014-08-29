@@ -2,13 +2,14 @@
 Cache simulator
 '''
 
-import collections
+from collections import OrderedDict, Counter
+from operator import itemgetter
 import os
-import cache
 import csv
+import cache
 
 
-class IndexedOrderedDict(collections.OrderedDict):
+class IndexedOrderedDict(OrderedDict):
 
     """
     This is a custom class that combines the properties of
@@ -26,7 +27,7 @@ class IndexedOrderedDict(collections.OrderedDict):
     """
 
     def __init__(self, key=lambda k: k, *args, **kwargs):
-        self.counter = collections.Counter()
+        self.counter = Counter()
         self.key_transform = key
         super(IndexedOrderedDict, self).__init__(*args, **kwargs)
 
@@ -44,13 +45,13 @@ class IndexedOrderedDict(collections.OrderedDict):
 class Sim(object):
 
     def __init__(self, filename=None, blocksize=16, cachesize=256):
-        self.constsize = 4  # For now all VMs get 4 slots
-        self.EVICT_POLICY = "staticLRU"
+        self.EVICT_POLICY = "weightedLRU"
         self.ssd = IndexedOrderedDict()  # This will be the actual cache
         self.filename = filename
         self.blocksize = blocksize
         self.cachesize = cachesize
         self.maxsize = cachesize / blocksize
+        self.weight = {1: 2, 2: 2, 3: 1, 4: 2}
         self.counter = {}
         self.config = {
             "blocksize": blocksize,
@@ -63,17 +64,12 @@ class Sim(object):
         }
 
     def checkFreeSpace(self, UUID):
-        if self.EVICT_POLICY == "globalLRU":
-            if (len(self.ssd) <= self.maxsize):
+        if (len(self.ssd) <= self.maxsize):
+            if self.EVICT_POLICY == "staticLRU":
+                return self.ssd.counter[UUID[1]] <= self.weight[UUID[1]]
+            else:  # Both global and weighted LRU care only about maxsize
                 return True
-            else:
-                return False
-        elif self.EVICT_POLICY == "staticLRU":
-            if (len(self.ssd) <= self.maxsize
-                    and self.ssd.counter[UUID[1]] <= self.constsize):
-                return True
-            else:
-                return False
+        return False
 
     def sim_write(self, UUID):
         pass
@@ -100,13 +96,21 @@ class Sim(object):
             self.state["evictions"] += 1
 
     def evictItem(self, UUID):
-        if self.EVICT_POLICY == "globalLRU":
-            self.ssd.popitem(last=False)
+        if self.EVICT_POLICY == "weightedLRU":
+            delta = Counter(self.ssd.counter) - Counter(self.weight)
+            # Negative values are ignored in the above expression.
+            # To not ignore use:
+            # delta =  k: self.ssd.counter.get(k, 0) - self.weight.get(k, 0)
+            # for k in set(self.ssd.counter) & set(self.weight) }
+            item_to_be_evicted = max(delta.iteritems(), key=itemgetter(1))[0]
+            self.ssd.pop(item_to_be_evicted)
         elif self.EVICT_POLICY == "staticLRU":
             # pop the first element that matches with the disk id
-            for item in self.ssd.keys():
-                if item[1] == UUID[1]:
-                    self.ssd.pop(item)
+            for item_to_be_evicted in self.ssd.keys():
+                if item_to_be_evicted[1] == UUID[1]:
+                    self.ssd.pop(item_to_be_evicted)
+        else:
+            self.ssd.popitem(last=False)
 
     def delete(self):
         self.resetCache()
