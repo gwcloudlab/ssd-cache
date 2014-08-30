@@ -69,7 +69,7 @@ class Sim(object):
     def checkFreeSpace(self, UUID):
         if (len(self.ssd) < self.maxsize):
             if self.EVICT_POLICY == "staticLRU":
-                return self.ssd.counter[UUID[1]] <= self.weight[UUID[1]]
+                return self.ssd.counter[UUID[1]] < self.weight[UUID[1]]
             else:  # Both global and weighted LRU care only about maxsize
                 return True
         return False
@@ -108,15 +108,10 @@ class Sim(object):
             try:
                 id_to_be_evicted = max(delta.iteritems(), key=itemgetter(1))[0]
             except ValueError:
-                # If all items are exactly equal to their weight
-                # delta would be an empty sequence.
+                # If all items are exactly equal to their weight,
+                # delta would be an empty sequence, hence ValueError.
                 self.ssd.popitem(last=False)
             else:
-                # print self.ssd.keys()
-                # print "Counter = ", self.ssd.counter
-                # print "weight = ", self.weight
-                # print "Delta = ", delta
-                # print "ID to be evicted = ", id_to_be_evicted
                 for item_to_be_evicted in self.ssd.keys():
                     if item_to_be_evicted[1] == id_to_be_evicted:
                         self.ssd.pop(item_to_be_evicted)
