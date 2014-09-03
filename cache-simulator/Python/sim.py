@@ -2,12 +2,13 @@
 Cache simulator
 '''
 
-from collections import OrderedDict, Counter
+from collections import defaultdict, OrderedDict, Counter
 from operator import itemgetter
+import pprint
 import os
 import csv
 import cache
-import pdb
+# import pdb
 
 
 class IndexedOrderedDict(OrderedDict):
@@ -56,6 +57,7 @@ class Sim(object):
         self.maxsize = cachesize / blocksize
         self.weight = {1: 4, 2: 3, 3: 2, 4: 1}
         self.counter = {}
+        self.stats = defaultdict(lambda: 0)
         self.config = {
             "blocksize": blocksize,
             "cachesize": cachesize
@@ -83,9 +85,11 @@ class Sim(object):
             self.ssd[UUID] = cache_contents
             self.ssd[UUID].set_lru()
             self.state["hits"] += 1
+            self.stats[UUID[1], "hits"] += 1
         else:
             self.insert(UUID)
             self.state["misses"] += 1
+            self.stats[UUID[1], "misses"] += 1
 
     def insert(self, UUID):
         new_cache_block = cache.Cache()
@@ -97,6 +101,7 @@ class Sim(object):
             self.ssd[UUID] = new_cache_block
             self.ssd[UUID].set_lru()
             self.state["evictions"] += 1
+            self.stats[UUID[1], "evictions"] += 1
 
     def evictItem(self, UUID):
         if self.EVICT_POLICY == "weightedLRU":
@@ -129,9 +134,10 @@ class Sim(object):
         self.resetCache()
 
     def print_stats(self):
-        print self.config
-        print self.state
-        print self.ssd.keys()
+        # print self.config
+        pprint.pprint(self.state)
+        pprint.pprint(dict(self.stats))
+        # print self.ssd.keys()
 
     # Zero out cache blocks/flags/values
     def resetCache(self):
