@@ -55,7 +55,10 @@ class Sim(object):
         self.cachesize = cachesize
         # max size and self.weight's sum should be equal
         self.maxsize = cachesize / blocksize
-        self.weight = {1: 4, 2: 3, 3: 2, 4: 1}
+        # Assign priority on the scale of 1 to 10
+        self.priority = {1: 4, 2: 3, 3: 2, 4: 1}
+        self.weight = {k: int(v * self.maxsize / 10)
+                       for k, v in self.priority.items()}
         self.counter = {}
         self.stats = defaultdict(lambda: 0)
         self.config = {
