@@ -46,7 +46,8 @@ class IndexedOrderedDict(OrderedDict):
 
 class Sim(object):
 
-    def __init__(self, filename=None, blocksize=8, cachesize=80):
+    def __init__(self, filename=None, blocksize=4096, cachesize=196608000):
+        # There is a total of ~48K unique block addresses in the input file.
         self.EVICT_POLICY = "weightedLRU"
         # This will be the actual cache
         self.ssd = IndexedOrderedDict(key=lambda k: k[1])
@@ -55,7 +56,7 @@ class Sim(object):
         self.cachesize = cachesize
         # max size and self.weight's sum should be equal
         self.maxsize = cachesize / blocksize
-        self.weight = {1: 4, 2: 3, 3: 2, 4: 1}
+        self.weight = {0: 16000, 1: 16000, 2: 16000}
         self.counter = {}
         self.stats = defaultdict(lambda: 0)
         self.config = {
@@ -75,9 +76,6 @@ class Sim(object):
             else:  # Both global and weighted LRU care only about maxsize
                 return True
         return False
-
-    def sim_write(self, UUID):
-        pass
 
     def sim_read(self, UUID):
         if (UUID in self.ssd):
@@ -148,13 +146,11 @@ class Sim(object):
         try:
             with open(self.filename, "rb") as trace:
                 for item in csv.reader(trace, delimiter=','):
-                    operation, block_address, disk_id = item[
-                        0], int(item[1], 0), int(item[2], 0)
+                    disk_id, block_address, read_size, operation, \
+                        time_of_access = item[0], item[1], int(item[2], 0), \
+                        item[3], float(item[4])
                     UUID = (block_address, disk_id)
-                    if operation == 'r':
-                        self.sim_read(UUID)
-                    else:
-                        self.sim_write(UUID)
+                    self.sim_read(UUID)
                     # print self.ssd.keys()
                     # pdb.set_trace()
             self.print_stats()

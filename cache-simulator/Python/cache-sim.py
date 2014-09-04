@@ -7,7 +7,7 @@ import sim
 
 
 def main():
-    world = sim.Sim("sample.trace")
+    world = sim.Sim("WebSearch1.csv")
     world.run()
 
 if __name__ == '__main__':
