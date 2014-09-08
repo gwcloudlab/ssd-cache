@@ -7,10 +7,11 @@ import os
 import csv
 from global_lru import Global_lru
 from static_lru import Static_lru
+from weighted_lru import Weighted_lru
 
 
 def main():
-    world = Static_lru()
+    world = Weighted_lru()
     filename = "sample.trace"
 
     try:

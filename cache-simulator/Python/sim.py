@@ -9,7 +9,7 @@ class Sim(object):
     def __init__(self, filename=None, blocksize=8, cachesize=80):
         self.EVICT_POLICY = "staticLRU"
         # This will be the actual cache
-        self.ssd = defaultdict(lambda: OrderedDict())
+        self.ssd = defaultdict(OrderedDict)
         self.filename = filename
         self.blocksize = blocksize
         self.cachesize = cachesize
