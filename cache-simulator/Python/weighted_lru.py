@@ -7,8 +7,8 @@ from collections import Counter
 
 class Weighted_lru(Sim):
 
-    def __init__(self, filename=None, blocksize=8, cachesize=80):
-        Sim.__init__(self, filename=None, blocksize=8, cachesize=80)
+    def __init__(self, blocksize, cachesize):
+        Sim.__init__(self, blocksize, cachesize)
         self.counter = Counter({1: 0, 2: 0, 3: 0, 4: 0})
 
     def sim_read(self, disk_id, block_address):
@@ -41,7 +41,7 @@ class Weighted_lru(Sim):
             # If all items are exactly equal to their weight,
             # delta would be an empty sequence, hence ValueError.
             id_to_be_evicted = disk_id
-        print "ID to be evicted", id_to_be_evicted
+        # print "ID to be evicted", id_to_be_evicted
         return id_to_be_evicted
 
     def print_stats(self):

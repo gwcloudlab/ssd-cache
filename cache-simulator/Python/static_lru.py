@@ -5,8 +5,8 @@ from sim import Sim
 
 class Static_lru(Sim):
 
-    def __init__(self, filename=None, blocksize=8, cachesize=80):
-        Sim.__init__(self, filename=None, blocksize=8, cachesize=80)
+    def __init__(self, blocksize, cachesize):
+        Sim.__init__(self, blocksize, cachesize)
 
     def sim_read(self, disk_id, block_address):
         if (block_address in self.ssd[disk_id]):

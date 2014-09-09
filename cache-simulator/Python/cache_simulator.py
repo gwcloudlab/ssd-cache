@@ -18,7 +18,7 @@ def display_results(ssd):
 
 
 def main():
-    world = Weighted_lru()
+    world = Weighted_lru(blocksize=8, cachesize=80)
     filename = "sample.trace"
 
     try:

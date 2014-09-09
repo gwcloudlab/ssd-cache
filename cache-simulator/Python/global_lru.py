@@ -6,8 +6,8 @@ from collections import OrderedDict
 
 class Global_lru(Sim):
 
-    def __init__(self, filename=None, blocksize=8, cachesize=80):
-        Sim.__init__(self, filename=None, blocksize=8, cachesize=80)
+    def __init__(self, blocksize, cachesize):
+        Sim.__init__(self, blocksize, cachesize)
         self.ssd = OrderedDict()
 
     def sim_read(self, disk_id, block_address):
