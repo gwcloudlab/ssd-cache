@@ -5,9 +5,16 @@ Main Function for cache for class
 '''
 import os
 import csv
-from global_lru import Global_lru
-from static_lru import Static_lru
+# from global_lru import Global_lru
+# from static_lru import Static_lru
 from weighted_lru import Weighted_lru
+# import pdb
+
+
+def display_results(ssd):
+    for outer_key, outer_value in ssd.items():
+        for inner_key in outer_value.keys():
+            print outer_key, inner_key
 
 
 def main():
@@ -19,8 +26,9 @@ def main():
             for item in csv.reader(trace, delimiter=','):
                 operation, block_address, disk_id = item[
                     0], int(item[1], 0), int(item[2], 0)
+                # print "input: ", disk_id, block_address
                 world.sim_read(disk_id, block_address)
-                # print world.ssd.keys()
+                # display_results(world.ssd)
                 # pdb.set_trace()
         world.print_stats()
         return True

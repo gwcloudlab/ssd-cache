@@ -1,7 +1,7 @@
 '''
 Cache simulator
 '''
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict, defaultdict, Counter
 
 
 class Sim(object):
@@ -17,9 +17,8 @@ class Sim(object):
         self.maxsize = cachesize / blocksize
         # Assign priority on the scale of 1 to 10
         self.priority = {1: 4, 2: 3, 3: 2, 4: 1}
-        self.weight = {k: int(v * self.maxsize / 10)
-                       for k, v in self.priority.items()}
-        self.counter = {}
+        self.weight = Counter({k: int(v * self.maxsize / 10)
+                              for k, v in self.priority.items()})
         self.stats = defaultdict(lambda: 0)
 
     def delete(self):
