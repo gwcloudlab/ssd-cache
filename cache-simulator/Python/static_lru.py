@@ -16,7 +16,7 @@ class Static_lru(Sim):
             self.stats[disk_id, "hits"] += 1
         else:
             new_cache_block = cache.Cache()
-            if (len(self.ssd[disk_id]) >= self.weight[disk_id]):
+            if (len(self.ssd[disk_id]) == self.weight[disk_id]):
                 self.ssd[disk_id].popitem(last=False)
                 self.stats[disk_id, "evictions"] += 1
             self.ssd[disk_id][block_address] = new_cache_block

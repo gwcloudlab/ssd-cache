@@ -5,8 +5,8 @@ Main Function for cache for class
 '''
 import os
 import csv
-# from global_lru import Global_lru
-# from static_lru import Static_lru
+from global_lru import Global_lru
+from static_lru import Static_lru
 from weighted_lru import Weighted_lru
 # import pdb
 
@@ -18,14 +18,16 @@ def display_results(ssd):
 
 
 def main():
-    world = Weighted_lru(blocksize=8, cachesize=80)
-    filename = "sample.trace"
-
+    world = Weighted_lru(blocksize=4096, cachesize=196608000)
+    # There is a total of ~480K unique block addresses in the input file.
+    # 196608000/4096 = 48K blocks (10% of total unique blocks)
+    filename = "WebSearch1.csv"
     try:
         with open(filename, "rb") as trace:
             for item in csv.reader(trace, delimiter=','):
-                operation, block_address, disk_id = item[
-                    0], int(item[1], 0), int(item[2], 0)
+                disk_id, block_address, read_size, operation, time_of_access \
+                    = int(item[0]), int(item[1]), int(item[2], 0), item[
+                        3], float(item[4])
                 # print "input: ", disk_id, block_address
                 world.sim_read(disk_id, block_address)
                 # display_results(world.ssd)

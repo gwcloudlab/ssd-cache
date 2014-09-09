@@ -9,7 +9,7 @@ class Weighted_lru(Sim):
 
     def __init__(self, blocksize, cachesize):
         Sim.__init__(self, blocksize, cachesize)
-        self.counter = Counter({1: 0, 2: 0, 3: 0, 4: 0})
+        self.counter = Counter({1: 0, 2: 0, 3: 0, 4: 0, 5: 0})
 
     def sim_read(self, disk_id, block_address):
         if (block_address in self.ssd[disk_id]):
