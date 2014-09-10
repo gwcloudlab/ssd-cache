@@ -24,5 +24,6 @@ class Static_lru(Cache):
             self.stats[disk_id, "misses"] += 1
 
     def print_stats(self):
+        print "\nStatic LRU:\n"
         pprint.pprint(dict(self.stats))
         # print self.ssd.keys()

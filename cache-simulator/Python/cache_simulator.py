@@ -44,11 +44,14 @@ def run(world, filename):
 
 
 def main():
-    world = Static_lru(blocksize=4096, cachesize=196608000)
-    # There is a total of ~480K unique block addresses in the input file.
-    # 196608000/4096 = 48K blocks (10% of total unique blocks)
     filename = "WebSearch1.csv"
-    run(world, filename)
+    algorithms = [Global_lru, Static_lru, Weighted_lru]
+    for algorithm in algorithms:
+        # There is a total of ~480K unique
+        # block addresses in the input file. 196608000/4096
+        # = 48K blocks (10% of total unique blocks)
+        world = algorithm(blocksize=4096, cachesize=1966080000)
+        run(world, filename)
 
 if __name__ == '__main__':
     main()

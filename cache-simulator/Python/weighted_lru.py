@@ -45,5 +45,6 @@ class Weighted_lru(Cache):
         return id_to_be_evicted
 
     def print_stats(self):
+        print "\nWeighted LRU:\n"
         pprint.pprint(dict(self.stats))
         # print self.ssd
