@@ -20,7 +20,7 @@ def display_results(ssd):
 
 def run(world, filename):
     try:
-        with open(filename, "rb") as trace:
+        with open(os.path.join("traces", filename), "rb") as trace:
             for item in csv.reader(trace, delimiter=','):
                 disk_id, block_address, read_size, operation, time_of_access \
                     = int(item[0]), int(item[1]), int(item[2], 0), item[
