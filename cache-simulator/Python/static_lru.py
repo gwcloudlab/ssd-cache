@@ -1,12 +1,12 @@
-import cache
+from cache_entry import Cache_entry
 import pprint
-from sim import Sim
+from cache import Cache
 
 
-class Static_lru(Sim):
+class Static_lru(Cache):
 
     def __init__(self, blocksize, cachesize):
-        Sim.__init__(self, blocksize, cachesize)
+        Cache.__init__(self, blocksize, cachesize)
 
     def sim_read(self, disk_id, block_address):
         if (block_address in self.ssd[disk_id]):
@@ -15,7 +15,7 @@ class Static_lru(Sim):
             self.ssd[disk_id][block_address].set_lru()
             self.stats[disk_id, "hits"] += 1
         else:
-            new_cache_block = cache.Cache()
+            new_cache_block = Cache_entry()
             if (len(self.ssd[disk_id]) == self.weight[disk_id]):
                 self.ssd[disk_id].popitem(last=False)
                 self.stats[disk_id, "evictions"] += 1

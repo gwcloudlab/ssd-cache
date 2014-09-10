@@ -7,8 +7,8 @@ import os
 import csv
 import math
 from global_lru import Global_lru
-# from static_lru import Static_lru
-# from weighted_lru import Weighted_lru
+from static_lru import Static_lru
+from weighted_lru import Weighted_lru
 # import pdb
 
 
@@ -44,7 +44,7 @@ def run(world, filename):
 
 
 def main():
-    world = Global_lru(blocksize=4096, cachesize=196608000)
+    world = Static_lru(blocksize=4096, cachesize=196608000)
     # There is a total of ~480K unique block addresses in the input file.
     # 196608000/4096 = 48K blocks (10% of total unique blocks)
     filename = "WebSearch1.csv"

@@ -1,14 +1,14 @@
-import cache
+from cache_entry import Cache_entry
 import pprint
-from sim import Sim
+from cache import Cache
 from operator import itemgetter
 from collections import Counter
 
 
-class Weighted_lru(Sim):
+class Weighted_lru(Cache):
 
     def __init__(self, blocksize, cachesize):
-        Sim.__init__(self, blocksize, cachesize)
+        Cache.__init__(self, blocksize, cachesize)
         self.counter = Counter({1: 0, 2: 0, 3: 0, 4: 0, 5: 0})
 
     def sim_read(self, disk_id, block_address):
@@ -18,7 +18,7 @@ class Weighted_lru(Sim):
             self.ssd[disk_id][block_address].set_lru()
             self.stats[disk_id, "hits"] += 1
         else:
-            new_cache_block = cache.Cache()
+            new_cache_block = Cache_entry()
             # If the given disk has no space
             if sum(self.counter.values()) == self.maxsize:
                 id_to_evict = self.find_id_to_evict(disk_id, block_address)

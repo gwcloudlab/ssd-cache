@@ -1,13 +1,13 @@
-import cache
+from cache_entry import Cache_entry
 import pprint
-from sim import Sim
+from cache import Cache
 from collections import OrderedDict
 
 
-class Global_lru(Sim):
+class Global_lru(Cache):
 
     def __init__(self, blocksize, cachesize):
-        Sim.__init__(self, blocksize, cachesize)
+        Cache.__init__(self, blocksize, cachesize)
         self.ssd = OrderedDict()
 
     def sim_read(self, disk_id, block_address):
@@ -18,7 +18,7 @@ class Global_lru(Sim):
             self.ssd[UUID].set_lru()
             self.stats[UUID[0], "hits"] += 1
         else:
-            new_cache_block = cache.Cache()
+            new_cache_block = Cache_entry()
             if(len(self.ssd) >= self.maxsize):
                 self.ssd.popitem(last=False)
                 self.stats[UUID[0], "evictions"] += 1
