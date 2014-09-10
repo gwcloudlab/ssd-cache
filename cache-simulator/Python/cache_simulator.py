@@ -5,9 +5,10 @@ Main Function for cache for class
 '''
 import os
 import csv
+import math
 from global_lru import Global_lru
-from static_lru import Static_lru
-from weighted_lru import Weighted_lru
+# from static_lru import Static_lru
+# from weighted_lru import Weighted_lru
 # import pdb
 
 
@@ -17,11 +18,7 @@ def display_results(ssd):
             print outer_key, inner_key
 
 
-def main():
-    world = Weighted_lru(blocksize=4096, cachesize=196608000)
-    # There is a total of ~480K unique block addresses in the input file.
-    # 196608000/4096 = 48K blocks (10% of total unique blocks)
-    filename = "WebSearch1.csv"
+def run(world, filename):
     try:
         with open(filename, "rb") as trace:
             for item in csv.reader(trace, delimiter=','):
@@ -30,6 +27,11 @@ def main():
                         3], float(item[4])
                 # print "input: ", disk_id, block_address
                 world.sim_read(disk_id, block_address)
+                if read_size > 4096:
+                    blocks = int(math.ceil(read_size / 4096.0))
+                    for block in xrange(1, blocks):
+                        block_address += 1
+                        world.sim_read(disk_id, block_address)
                 # display_results(world.ssd)
                 # pdb.set_trace()
         world.print_stats()
@@ -39,6 +41,14 @@ def main():
               error.filename + os.linesep +
               " with error: " + error.message + os.linesep)
         return False
+
+
+def main():
+    world = Global_lru(blocksize=4096, cachesize=196608000)
+    # There is a total of ~480K unique block addresses in the input file.
+    # 196608000/4096 = 48K blocks (10% of total unique blocks)
+    filename = "WebSearch1.csv"
+    run(world, filename)
 
 if __name__ == '__main__':
     main()
