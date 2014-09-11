@@ -9,6 +9,7 @@ import math
 from global_lru import Global_lru
 from static_lru import Static_lru
 from weighted_lru import Weighted_lru
+from timeit import Timer
 # import pdb
 
 
@@ -44,7 +45,7 @@ def display_results(ssd):
 
 
 def main():
-    filename = "WebSearch1.csv"
+    filename = "WebSearch2.csv"
     blocksize = 4096
     cachesize = 19660800000
     # There is a total of ~480K unique block addresses in the input file.
@@ -53,7 +54,8 @@ def main():
     algorithms = [Global_lru, Static_lru, Weighted_lru]
     for algorithm in algorithms:
         world = algorithm(blocksize, cachesize)
-        run(world, filename)
+        t = Timer(lambda: run(world, filename))
+        print "It took %s seconds to run" % (t.timeit(number=1))
 
 if __name__ == '__main__':
     main()
