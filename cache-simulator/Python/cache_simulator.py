@@ -12,12 +12,6 @@ from weighted_lru import Weighted_lru
 # import pdb
 
 
-def display_results(ssd):
-    for outer_key, outer_value in ssd.items():
-        for inner_key in outer_value.keys():
-            print outer_key, inner_key
-
-
 def run(world, filename):
     try:
         with open(os.path.join("traces", filename), "rb") as trace:
@@ -43,14 +37,22 @@ def run(world, filename):
         return False
 
 
+def display_results(ssd):
+    for outer_key, outer_value in ssd.items():
+        for inner_key in outer_value.keys():
+            print outer_key, inner_key
+
+
 def main():
     filename = "WebSearch1.csv"
+    blocksize = 4096
+    cachesize = 19660800000
+    # There is a total of ~480K unique block addresses in the input file.
+    # 196608000/4096 = 48K blocks (10% of total unique blocks)
+
     algorithms = [Global_lru, Static_lru, Weighted_lru]
     for algorithm in algorithms:
-        # There is a total of ~480K unique
-        # block addresses in the input file. 196608000/4096
-        # = 48K blocks (10% of total unique blocks)
-        world = algorithm(blocksize=4096, cachesize=1966080000)
+        world = algorithm(blocksize, cachesize)
         run(world, filename)
 
 if __name__ == '__main__':

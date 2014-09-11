@@ -27,5 +27,6 @@ class Global_lru(Cache):
 
     def print_stats(self):
         print "\nGlobal LRU:\n"
+        print "Maxsize: ", self.maxsize, "\n"
         pprint.pprint(dict(self.stats))
         # print self.ssd.keys()

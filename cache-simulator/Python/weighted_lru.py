@@ -20,7 +20,7 @@ class Weighted_lru(Cache):
         else:
             new_cache_block = Cache_entry()
             # If the given disk has no space
-            if sum(self.counter.values()) == self.maxsize:
+            if sum(self.counter.values()) >= self.maxsize:
                 id_to_evict = self.find_id_to_evict(disk_id, block_address)
                 self.ssd[id_to_evict].popitem(last=False)
                 self.counter[id_to_evict] -= 1
@@ -46,5 +46,6 @@ class Weighted_lru(Cache):
 
     def print_stats(self):
         print "\nWeighted LRU:\n"
+        print "Weight: ", self.weight, "\n"
         pprint.pprint(dict(self.stats))
         # print self.ssd
