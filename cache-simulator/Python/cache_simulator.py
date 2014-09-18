@@ -24,13 +24,12 @@ def run(world, filename):
                     int(item[4]), int(item[5]), int(item[6])
                 # print "input: ", disk_id, block_address
                 world.sim_read(disk_id, block_address)
-                if read_size > 4096:
-                    blocks = int(math.ceil(read_size / 4096.0))
-                    for block in xrange(1, blocks):
-                        block_address += 1
-                        world.sim_read(disk_id, block_address)
-                # display_results(world.ssd)
-                # pdb.set_trace()
+                blocks = int(math.ceil(read_size / 4096.0))
+                for block in xrange(blocks):
+                    block_address += 1
+                    world.sim_read(disk_id, block_address)
+            # display_results(world.ssd)
+            # pdb.set_trace()
         world.print_stats()
         return True
     except IOError as error:
