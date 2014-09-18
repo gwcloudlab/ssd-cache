@@ -18,9 +18,8 @@ class Cache(object):
         # self.priority = {0: 80, 1: 10, 2: 7, 3: 1, 4: 1, 5: 1}
         # self.weight = Counter({k: int(v * self.maxsize / 100)
         #                      for k, v in self.priority.items()})
-        self.weight = Counter({1: 78051, 2: 79112, 3: 79310})
-        # self.maxsize = sum(self.weight.values())
-        self.maxsize = 40960000000
+        self.weight = Counter({1: 1038989, 2: 17514932, 3: 167835})
+        self.maxsize = sum(self.weight.values())
         self.stats = defaultdict(lambda: 0)
 
     def delete(self):
