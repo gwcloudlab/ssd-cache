@@ -1,17 +1,30 @@
+from __future__ import division
 from cache_entry import Cache_entry
 import pprint
 from cache import Cache
 from operator import itemgetter
-from collections import Counter
+from collections import Counter, defaultdict
+from time import time
 
 
 class Weighted_lru(Cache):
 
     def __init__(self, blocksize, cachesize):
         Cache.__init__(self, blocksize, cachesize)
-        self.counter = Counter({1: 0, 2: 0, 3: 0, 4: 0, 5: 0})
+        # Number of cache items currently owned by each disk
+        self.counter = Counter({0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0})
+        self.total_accesses = defaultdict(lambda: 0)
+        self.ri = defaultdict()
+        self.unique_blocks = defaultdict(set)
+        self.time_interval = 5
+        self.timeout = time() + self.time_interval
 
     def sim_read(self, disk_id, block_address):
+        self.total_accesses[disk_id] += 1
+        self.unique_blocks[disk_id].add(block_address)
+        if time() > self.timeout:
+            self.timeout = time() + self.time_interval
+            self.calculate_reuse_intensity()
         if (block_address in self.ssd[disk_id]):
             cache_contents = self.ssd[disk_id].pop(block_address)
             self.ssd[disk_id][block_address] = cache_contents
@@ -43,6 +56,19 @@ class Weighted_lru(Cache):
             id_to_be_evicted = disk_id
         # print "ID to be evicted", id_to_be_evicted
         return id_to_be_evicted
+
+    def calculate_reuse_intensity(self):
+        for disk in xrange(self.no_of_vms):
+            if len(self.unique_blocks[disk]) == 0:
+                continue
+            self.ri[disk] = (self.total_accesses[disk]
+                             / (len(self.unique_blocks[disk])
+                                * self.time_interval))
+            # print "total_accesses of ", disk, ": ", self.total_accesses[disk]
+            # print "uniq_blcks of ", disk, ": ", len(self.unique_blocks[disk])
+            # print "RI of ", disk, ": ", self.ri[disk]
+        self.total_accesses.clear()
+        self.unique_blocks.clear()
 
     def print_stats(self):
         print "\nWeighted LRU:\n"

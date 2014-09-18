@@ -51,7 +51,8 @@ def main():
     # There is a total of ~480K unique block addresses in the input file.
     # 196608000/4096 = 48K blocks (10% of total unique blocks)
 
-    algorithms = [Global_lru, Static_lru, Weighted_lru]
+    #algorithms = [Global_lru, Static_lru, Weighted_lru]
+    algorithms = [Weighted_lru]
     for algorithm in algorithms:
         world = algorithm(blocksize, cachesize)
         t = Timer(lambda: run(world, filename))
