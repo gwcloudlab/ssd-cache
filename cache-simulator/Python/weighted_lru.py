@@ -12,11 +12,11 @@ class Weighted_lru(Cache):
     def __init__(self, blocksize, cachesize):
         Cache.__init__(self, blocksize, cachesize)
         # Number of cache items currently owned by each disk
-        self.counter = Counter({0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0})
+        self.counter = Counter({1: 0, 2: 0, 3: 0})
         self.total_accesses = defaultdict(lambda: 0)
-        self.ri = defaultdict()
         self.unique_blocks = defaultdict(set)
-        self.time_interval = 5
+        self.ri = defaultdict()  # Reuse intensity
+        self.time_interval = 20   # t_w from vCacheShare paper
         self.timeout = time() + self.time_interval
 
     def sim_read(self, disk_id, block_address):
@@ -66,7 +66,7 @@ class Weighted_lru(Cache):
                                 * self.time_interval))
             # print "total_accesses of ", disk, ": ", self.total_accesses[disk]
             # print "uniq_blcks of ", disk, ": ", len(self.unique_blocks[disk])
-            # print "RI of ", disk, ": ", self.ri[disk]
+            print "RI of ", disk, ": ", self.ri[disk]
         self.total_accesses.clear()
         self.unique_blocks.clear()
 

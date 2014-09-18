@@ -9,7 +9,7 @@ class Cache(object):
     def __init__(self, blocksize, cachesize):
         # This will be the actual cache
         self.ssd = defaultdict(OrderedDict)
-        self.no_of_vms = 6 # IDs 0 to 5
+        self.no_of_vms = 3  # IDs 0 to 5
         self.blocksize = blocksize
         self.cachesize = cachesize
         # max size and self.weight's sum should be equal
@@ -18,9 +18,9 @@ class Cache(object):
         # self.priority = {0: 80, 1: 10, 2: 7, 3: 1, 4: 1, 5: 1}
         # self.weight = Counter({k: int(v * self.maxsize / 100)
         #                      for k, v in self.priority.items()})
-        self.weight = Counter({0: 78051, 1: 79112, 2: 79310,
-                               3: 85, 4: 81, 5: 87})
-        self.maxsize = sum(self.weight.values())
+        self.weight = Counter({1: 78051, 2: 79112, 3: 79310})
+        # self.maxsize = sum(self.weight.values())
+        self.maxsize = 40960000000
         self.stats = defaultdict(lambda: 0)
 
     def delete(self):

@@ -15,11 +15,13 @@ from timeit import Timer
 
 def run(world, filename):
     try:
-        with open(os.path.join("traces", filename), "rb") as trace:
+        with open(os.path.join("traces/MSR-Cambridge/web", filename),
+                  "rb") as trace:
             for item in csv.reader(trace, delimiter=','):
-                disk_id, block_address, read_size, operation, time_of_access \
-                    = int(item[0]), int(item[1]), int(item[2], 0), item[
-                        3], float(item[4])
+                time_of_access, hostname, disk_id, operation, \
+                    block_address, read_size, response_time = \
+                    int(item[0]), item[1], int(item[2]), item[3], \
+                    int(item[4]), int(item[5]), int(item[6])
                 # print "input: ", disk_id, block_address
                 world.sim_read(disk_id, block_address)
                 if read_size > 4096:
@@ -45,14 +47,14 @@ def display_results(ssd):
 
 
 def main():
-    filename = "WebSearch2.csv"
+    filename = "web_traces.csv"
     blocksize = 4096
     cachesize = 19660800000
     # There is a total of ~480K unique block addresses in the input file.
     # 196608000/4096 = 48K blocks (10% of total unique blocks)
 
     #algorithms = [Global_lru, Static_lru, Weighted_lru]
-    algorithms = [Weighted_lru]
+    algorithms = [Global_lru]
     for algorithm in algorithms:
         world = algorithm(blocksize, cachesize)
         t = Timer(lambda: run(world, filename))
