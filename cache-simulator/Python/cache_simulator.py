@@ -18,16 +18,18 @@ def run(world, filename):
         with open(os.path.join("traces/MSR-Cambridge/web", filename),
                   "rb") as trace:
             for item in csv.reader(trace, delimiter=','):
-                time_of_access, hostname, disk_id, operation, \
-                    block_address, read_size, response_time = \
-                    int(item[0]), item[1], int(item[2]), item[3], \
-                    int(item[4]), int(item[5]), int(item[6])
-                # print "input: ", disk_id, block_address
-                world.sim_read(disk_id, block_address)
+                time_of_access = int(item[0])
+                # hostname = item[1]
+                disk_id = int(item[2])
+                operation = item[3]
+                block_address = int(item[4])
+                read_size = int(item[5])
+                # response_time = int(item[6])
                 blocks = int(math.ceil(read_size / 4096.0))
-                for block in xrange(blocks):
-                    block_address += 1
-                    world.sim_read(disk_id, block_address)
+                if operation == "Read":
+                    for block in xrange(blocks):
+                        block_address += 1
+                        world.sim_read(time_of_access, disk_id, block_address)
             # display_results(world.ssd)
             # pdb.set_trace()
         world.print_stats()
@@ -46,14 +48,14 @@ def display_results(ssd):
 
 
 def main():
-    filename = "web_traces.csv"
+    filename = "pre-processed.csv"
     blocksize = 4096
     cachesize = 76684312576
     # There is a total of ~480K unique block addresses in the input file.
     # 196608000/4096 = 48K blocks (10% of total unique blocks)
 
-    algorithms = [Global_lru, Static_lru, Weighted_lru]
-    # algorithms = [Weighted_lru]
+    # algorithms = [Global_lru, Static_lru, Weighted_lru]
+    algorithms = [Weighted_lru]
     for algorithm in algorithms:
         world = algorithm(blocksize, cachesize)
         t = Timer(lambda: run(world, filename))

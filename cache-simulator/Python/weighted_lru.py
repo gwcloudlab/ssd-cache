@@ -4,7 +4,6 @@ import pprint
 from cache import Cache
 from operator import itemgetter
 from collections import Counter, defaultdict
-from time import time
 
 
 class Weighted_lru(Cache):
@@ -15,15 +14,15 @@ class Weighted_lru(Cache):
         self.counter = Counter({1: 0, 2: 0, 3: 0})
         self.total_accesses = defaultdict(lambda: 0)
         self.unique_blocks = defaultdict(set)
-        self.ri = defaultdict()  # Reuse intensity
-        self.time_interval = 20   # t_w from vCacheShare paper
-        self.timeout = time() + self.time_interval
+        self.ri = defaultdict()   # Reuse intensity
+        self.time_interval = 500   # t_w from vCacheShare paper
+        self.timeout = 0          # Sentinel
 
-    def sim_read(self, disk_id, block_address):
+    def sim_read(self, time_of_access, disk_id, block_address):
         self.total_accesses[disk_id] += 1
         self.unique_blocks[disk_id].add(block_address)
-        if time() > self.timeout:
-            self.timeout = time() + self.time_interval
+        if time_of_access > self.timeout:
+            self.timeout = time_of_access + self.time_interval
             self.calculate_reuse_intensity()
         if (block_address in self.ssd[disk_id]):
             cache_contents = self.ssd[disk_id].pop(block_address)

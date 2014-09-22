@@ -11,7 +11,7 @@ def WindowsTickToUnixSeconds(windowsTicks):
 with open(os.path.join("traces/MSR-Cambridge/web", "pre-processed.csv"), "wb") as wr:
     sentinal = 0
     writr = csv.writer(wr, delimiter=',')
-    with open(os.path.join("traces/MSR-Cambridge/web", "exp.csv"), "rb") as trace:
+    with open(os.path.join("traces/MSR-Cambridge/web", "sorted.csv"), "rb") as trace:
         for item in csv.reader(trace, delimiter=','):
             if sentinal == 0:
                 sentinal = WindowsTickToUnixSeconds(int(item[0]))
