@@ -44,17 +44,13 @@ class Weighted_lru(Cache):
             self.stats[disk_id, "misses"] += 1
 
     def find_id_to_evict(self, disk_id, block_address):
-        # print "Counter: ", self.counter
-        # print "weight: ", self.weight
         delta = Counter(self.counter) - Counter(self.weight)
-        # print "Delta: ", delta
         try:
             id_to_be_evicted = max(delta.iteritems(), key=itemgetter(1))[0]
         except ValueError:
             # If all items are exactly equal to their weight,
             # delta would be an empty sequence, hence ValueError.
             id_to_be_evicted = disk_id
-        # print "ID to be evicted", id_to_be_evicted
         return id_to_be_evicted
 
     def calculate_reuse_intensity(self):
@@ -64,9 +60,7 @@ class Weighted_lru(Cache):
             self.ri[disk] = (self.total_accesses[disk]
                              / (len(self.unique_blocks[disk])
                                 * self.time_interval))
-            # print "total_accesses of ", disk, ": ", self.total_accesses[disk]
-            # print "uniq_blcks of ", disk, ": ", len(self.unique_blocks[disk])
-            print "RI of ", disk, ": ", self.ri[disk]
+            print "RI of ", disk, ": ", self.ri[disk]  # Debug info
         self.total_accesses.clear()
         self.unique_blocks.clear()
 
@@ -75,10 +69,9 @@ class Weighted_lru(Cache):
                          for k, v in self.ri.items()}
         self.weight = {k: int(v * self.maxsize)
                        for k, v in self.priority.items()}
-        print self.weight
+        print self.weight       # Debug info
 
     def print_stats(self):
         print "\nWeighted LRU:\n"
         print "Weight: ", self.weight, "\n"
         pprint.pprint(dict(self.stats))
-        # print self.ssd
