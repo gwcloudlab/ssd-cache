@@ -15,7 +15,7 @@ from timeit import Timer
 
 def run(world, filename):
     try:
-        with open(os.path.join("traces/MSR-Cambridge/web", filename),
+        with open(os.path.join("traces/MSR-Cambridge-2/proj", filename),
                   "rb") as trace:
             for item in csv.reader(trace, delimiter=','):
                 time_of_access = int(item[0])

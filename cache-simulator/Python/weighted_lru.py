@@ -11,12 +11,12 @@ class Weighted_lru(Cache):
     def __init__(self, blocksize, cachesize):
         Cache.__init__(self, blocksize, cachesize)
         # Number of cache items currently owned by each disk
-        self.counter = Counter({1: 0, 2: 0, 3: 0})
+        self.counter = defaultdict(lambda: 0)
         self.total_accesses = defaultdict(lambda: 0)
         self.unique_blocks = defaultdict(set)
-        self.ri = defaultdict()   # Reuse intensity
-        self.time_interval = 500   # t_w from vCacheShare paper
-        self.timeout = 0          # Sentinel
+        self.ri = defaultdict()                     # Reuse intensity
+        self.time_interval = 500                    # t_w from vCacheShare
+        self.timeout = 0                            # Sentinel
 
     def sim_read(self, time_of_access, disk_id, block_address):
         self.total_accesses[disk_id] += 1
@@ -24,6 +24,7 @@ class Weighted_lru(Cache):
         if time_of_access > self.timeout:
             self.timeout = time_of_access + self.time_interval
             self.calculate_reuse_intensity()
+            self.calculate_weight()  # Calculate weight according to the RI
         if (block_address in self.ssd[disk_id]):
             cache_contents = self.ssd[disk_id].pop(block_address)
             self.ssd[disk_id][block_address] = cache_contents
@@ -45,7 +46,7 @@ class Weighted_lru(Cache):
     def find_id_to_evict(self, disk_id, block_address):
         # print "Counter: ", self.counter
         # print "weight: ", self.weight
-        delta = self.counter - self.weight
+        delta = Counter(self.counter) - Counter(self.weight)
         # print "Delta: ", delta
         try:
             id_to_be_evicted = max(delta.iteritems(), key=itemgetter(1))[0]
@@ -68,6 +69,13 @@ class Weighted_lru(Cache):
             print "RI of ", disk, ": ", self.ri[disk]
         self.total_accesses.clear()
         self.unique_blocks.clear()
+
+    def calculate_weight(self):
+        self.priority = {k: v / sum(self.ri.values())
+                         for k, v in self.ri.items()}
+        self.weight = {k: int(v * self.maxsize)
+                       for k, v in self.priority.items()}
+        print self.weight
 
     def print_stats(self):
         print "\nWeighted LRU:\n"
