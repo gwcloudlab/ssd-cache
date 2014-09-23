@@ -3,7 +3,7 @@ from cache_entry import Cache_entry
 import pprint
 from cache import Cache
 from operator import itemgetter
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, OrderedDict
 
 
 class Weighted_lru(Cache):
@@ -17,10 +17,12 @@ class Weighted_lru(Cache):
         self.ri = defaultdict()                     # Reuse intensity
         self.time_interval = 500                    # t_w from vCacheShare
         self.timeout = 0                            # Sentinel
+        self.rd = defaultdict(OrderedDict)          # Reuse distance
 
     def sim_read(self, time_of_access, disk_id, block_address):
         self.total_accesses[disk_id] += 1
         self.unique_blocks[disk_id].add(block_address)
+        self.calculate_reuse_distance(disk_id, block_address)
         if time_of_access > self.timeout:
             self.timeout = time_of_access + self.time_interval
             self.calculate_reuse_intensity()
@@ -60,9 +62,20 @@ class Weighted_lru(Cache):
             self.ri[disk] = (self.total_accesses[disk]
                              / (len(self.unique_blocks[disk])
                                 * self.time_interval))
-            print "RI of ", disk, ": ", self.ri[disk]  # Debug info
+            # print "No of unique blocks of ", disk, "is: ",
+            # len(self.unique_blocks[disk])
+        print "RI: ", self.ri  # Debug info
         self.total_accesses.clear()
         self.unique_blocks.clear()
+
+    def calculate_reuse_distance(self, disk_id, block_address):
+        if block_address in self.rd[disk_id]:
+            indx = self.rd[disk_id].keys().index(block_address)
+            sz = len(self.rd[disk_id])
+            self.rd[disk_id].pop(block_address)
+            self.rd[disk_id][block_address] = sz - indx
+        else:
+            self.rd[disk_id][block_address] = 0
 
     def calculate_weight(self):
         self.priority = {k: v / sum(self.ri.values())

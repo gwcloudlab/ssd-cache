@@ -7,7 +7,9 @@ from collections import OrderedDict, defaultdict
 class Cache(object):
 
     def __init__(self, blocksize, cachesize):
-        # This will be the actual cache
+        # This will be the actual cache. It is a nested dict.
+        # Default dict is the disk ID and the ordered dict are
+        # the blocks inside the disk.
         self.ssd = defaultdict(OrderedDict)
         self.no_of_vms = 5  # IDs 0 to 4
         self.blocksize = blocksize
