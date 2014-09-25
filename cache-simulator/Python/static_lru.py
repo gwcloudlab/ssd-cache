@@ -8,7 +8,7 @@ class Static_lru(Cache):
     def __init__(self, blocksize, cachesize):
         Cache.__init__(self, blocksize, cachesize)
 
-    def sim_read(self, disk_id, block_address):
+    def sim_read(self, time_of_access, disk_id, block_address):
         if (block_address in self.ssd[disk_id]):
             cache_contents = self.ssd[disk_id].pop(block_address)
             self.ssd[disk_id][block_address] = cache_contents

@@ -10,7 +10,7 @@ class Global_lru(Cache):
         Cache.__init__(self, blocksize, cachesize)
         self.ssd = OrderedDict()
 
-    def sim_read(self, disk_id, block_address):
+    def sim_read(self, time_of_access, disk_id, block_address):
         UUID = (disk_id, block_address)
         if (UUID in self.ssd):
             cache_contents = self.ssd.pop(UUID)

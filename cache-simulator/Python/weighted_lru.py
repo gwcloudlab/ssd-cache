@@ -4,6 +4,7 @@ import pprint
 from cache import Cache
 from operator import itemgetter
 from collections import Counter, defaultdict, OrderedDict
+from numpy import cumsum
 
 
 class Weighted_lru(Cache):
@@ -18,11 +19,12 @@ class Weighted_lru(Cache):
         self.time_interval = 500                    # t_w from vCacheShare
         self.timeout = 0                            # Sentinel
         self.rd = defaultdict(OrderedDict)          # Reuse distance
+        self.rd_hist = defaultdict()
 
     def sim_read(self, time_of_access, disk_id, block_address):
         self.total_accesses[disk_id] += 1
         self.unique_blocks[disk_id].add(block_address)
-        self.calculate_reuse_distance(disk_id, block_address)
+        # self.calculate_reuse_distance(disk_id, block_address)
         if time_of_access > self.timeout:
             self.timeout = time_of_access + self.time_interval
             self.calculate_reuse_intensity()
@@ -62,9 +64,6 @@ class Weighted_lru(Cache):
             self.ri[disk] = (self.total_accesses[disk]
                              / (len(self.unique_blocks[disk])
                                 * self.time_interval))
-            # print "No of unique blocks of ", disk, "is: ",
-            # len(self.unique_blocks[disk])
-        print "RI: ", self.ri  # Debug info
         self.total_accesses.clear()
         self.unique_blocks.clear()
 
@@ -77,12 +76,27 @@ class Weighted_lru(Cache):
         else:
             self.rd[disk_id][block_address] = 0
 
+    def construct_rd_histogram(self):
+        for disk, block in self.rd.iteritems():
+            self.rd_hist[disk] = Counter([value for value in block.values()])
+
+    def construct_rd_cdf(self):
+        # calculate the normalized rd array
+        rd_array_normalized = {}
+        for disk, block in self.rd.iteritems():
+            total = sum(block.itervalues())
+            rd_array_normalized[disk] = sorted([value/total for value in block.itervalues()])
+
+        # calculate the cdf of each disk
+        cdf = {}
+        for disk in rd_array_normalized.iterkeys():
+            cdf[disk] = cumsum(rd_array_normalized[disk])
+
+
     def calculate_weight(self):
         self.priority = {k: v / sum(self.ri.values())
                          for k, v in self.ri.items()}
-        self.weight = {k: int(v * self.maxsize)
-                       for k, v in self.priority.items()}
-        print self.weight       # Debug info
+        self.weight = {k: int(v * self.maxsize) for k, v in self.priority.items()}
 
     def print_stats(self):
         print "\nWeighted LRU:\n"

@@ -11,7 +11,7 @@ class Cache(object):
         # Default dict is the disk ID and the ordered dict are
         # the blocks inside the disk.
         self.ssd = defaultdict(OrderedDict)
-        self.no_of_vms = 5  # IDs 0 to 4
+        self.no_of_vms = 4  # IDs 0 to 4
         self.blocksize = blocksize
         self.cachesize = cachesize
         # Baseline values - min cache for each VM
