@@ -15,7 +15,7 @@ from timeit import Timer
 
 def run(world, filename):
     try:
-        with open(os.path.join("traces/MSR-Cambridge/web", filename),
+        with open(os.path.join('traces/MSR-Cambridge/web', filename),
                   "rb") as trace:
             for item in csv.reader(trace, delimiter=','):
                 time_of_access = int(item[0])
@@ -35,7 +35,7 @@ def run(world, filename):
         world.print_stats()
         return True
     except IOError as error:
-        print("ERROR: Error loading trace: " +
+        print('ERROR: Error loading trace: ' +
               error.filename + os.linesep +
               " with error: " + error.message + os.linesep)
         return False
@@ -48,7 +48,7 @@ def display_results(ssd):
 
 
 def main():
-    filename = "pre-processed_first_1000.csv"
+    filename = 'pre-processed_first_1000.csv'
     blocksize = 4096
     cachesize = 76684312576
     # There is a total of ~480K unique block addresses in the input file.
@@ -59,7 +59,7 @@ def main():
     for algorithm in algorithms:
         world = algorithm(blocksize, cachesize)
         t = Timer(lambda: run(world, filename))
-        print "It took %s seconds to run" % (t.timeit(number=1))
+        print 'It took %s seconds to run' % (t.timeit(number=1))
 
 if __name__ == '__main__':
     main()
