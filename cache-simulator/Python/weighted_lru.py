@@ -1,10 +1,11 @@
 from __future__ import division
 from cache_entry import Cache_entry
+from statsmodels import api as sm
 import pprint
 from cache import Cache
 from operator import itemgetter
 from collections import Counter, defaultdict, OrderedDict
-from numpy import cumsum
+
 
 
 class Weighted_lru(Cache):
@@ -95,41 +96,37 @@ class Weighted_lru(Cache):
         """
         The estimated hit ratio for each disk is calculated from it's RD by first
         constructing a list ("histogram") of all RD values for each disk, i.e., All the RD
-        values (one value per block) is copied into a list. This list, for each disk,
-        is then normalized by it's total and the list is sorted. Now, for each disk
-        we have a normalized array of RD values. Then the cdf of each of the list is
-        calculated by using the cumsum function from numpy library.
+        values (one value per block) is copied into a list. The cdf of each of the list is
+        calculated by using the sm.distributions.ECDF library function.
         """
 
         # calculate the normalized rd array
-        rd_array_normalized = {}
+        rd_array = {}
+        cdf_x = {} # The x axis of the cdf
+        cdf_y = {} # The y axis of the cdf. i.e. the hit ratio
         for disk, block in self.rd.iteritems():
-            total = sum(block.itervalues())
-            if total == 0:
-                rd_array_normalized[disk] = [0]
-            else:
-                rd_array_normalized[disk] = sorted([value / total for value in block.itervalues()])
-
-        # calculate the cdf of each disk
-        cdf = {}
-        for disk in rd_array_normalized.iterkeys():
-            cdf[disk] = cumsum(rd_array_normalized[disk])
+            rd_array[disk] = sorted(block.itervalues())
+            ecdf = sm.distributions.ECDF(rd_array[disk])
+            # x = np.linspace(min(rd_array[disk]), max(rd_array[disk]))
+            cdf_x[disk] = rd_array[disk]
+            cdf_y[disk] = ecdf(cdf_x[disk])
 
 
     def calculate_weight(self):
         """
-        Calculate the weight of each VM/Disk based on their Priorities.
-        The Priorities are calculated from their reuse intensity values.
-        priority[disk] = ri / sum of ri's for all disks - normalized by sum.
-        weight[disk] = priority * max size of the cache.
-        For now, there is no upper bound.
+            Calculate the weight of each VM/Disk based on their Priorities.
+            The Priorities are calculated from their reuse intensity values.
+            priority[disk] = ri / sum of ri's for all disks - normalized by sum.
+            weight[disk] = priority * max size of the cache.
+            For now, there is no upper bound.
 
-        TO-DO: Calculate priorities using RD as well.
-        """
+            TO-DO: Calculate priorities using RD as well.
+            """
         self.priority = {k: v / sum(self.ri.values())
                          for k, v in self.ri.items()}
         self.weight = {k: int(v * self.maxsize)
                        for k, v in self.priority.items()}
+
 
     def print_stats(self):
         print "\nWeighted LRU:\n"
