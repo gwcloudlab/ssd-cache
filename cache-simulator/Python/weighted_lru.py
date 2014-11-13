@@ -1,11 +1,13 @@
 from __future__ import division
 from cache_entry import Cache_entry
 from statsmodels import api as sm
+import sys
+import os
 import pprint
 from cache import Cache
 from operator import itemgetter
 from collections import Counter, defaultdict, OrderedDict
-
+from numpy import linspace, array
 
 
 class Weighted_lru(Cache):
@@ -86,8 +88,8 @@ class Weighted_lru(Cache):
         """
         if block_address in self.rd[disk_id]:
             indx = self.rd[disk_id].keys().index(block_address)
-            sz = len(self.rd[disk_id])
             self.rd[disk_id].pop(block_address)
+            sz = len(self.rd[disk_id])
             self.rd[disk_id][block_address] = sz - indx
         else:
             self.rd[disk_id][block_address] = 0
@@ -102,14 +104,36 @@ class Weighted_lru(Cache):
 
         # calculate the normalized rd array
         rd_array = {}
-        cdf_x = {} # The x axis of the cdf
-        cdf_y = {} # The y axis of the cdf. i.e. the hit ratio
-        for disk, block in self.rd.iteritems():
-            rd_array[disk] = sorted(block.itervalues())
-            ecdf = sm.distributions.ECDF(rd_array[disk])
-            # x = np.linspace(min(rd_array[disk]), max(rd_array[disk]))
-            cdf_x[disk] = rd_array[disk]
-            cdf_y[disk] = ecdf(cdf_x[disk])
+        cdf_x = {}  # The x axis of the cdf
+        cdf_y = {}  # The y axis of the cdf. i.e. the hit ratio
+        min_rd_value = 0.0 # initialize min and max rd values. This is the x-axis values
+        max_rd_value = 200.0
+        with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
+            out_file.write(" " + str(4) + " " + str(50) + " " + str(1) + "\n")
+            out_file.write(" " + str(150) + "\n")
+
+            for disk, block in self.rd.iteritems():
+                if sum(block.itervalues()) == 0:
+                    cdf_x[disk] = 0
+                    cdf_y[disk] = array([0])
+                    out_file.write(" " + str(disk+1) + "\n")
+                    for i in xrange(0, 50):
+                        out_file.write(" " + str(0) + " " + str(0) + "\n")
+                else:
+                    rd_array[disk] = sorted(block.itervalues())
+                    ecdf = sm.distributions.ECDF(rd_array[disk])
+                    # cdf_x[disk] = linspace(min(rd_array[disk]), max(rd_array[disk])) # For continuous x values
+                    # cdf_x[disk] = rd_array[disk]
+                    cdf_x[disk] = linspace(min_rd_value, max_rd_value, 50) # 50 x tics
+                    cdf_y[disk] = ecdf(cdf_x[disk])
+
+                    out_file.write(" " + str(disk+1) + "\n")
+                    for x_axis_value, y_axis_value in zip(cdf_x[disk], cdf_y[disk]):
+                        out_file.write(" " + str('%.2f' % y_axis_value) + " " + str('%.2f' % x_axis_value) + "\n")
+        os.system('/Users/sunny/Documents/ssd-cache/cache-simulator/Python/sim_anneal')
+        # print "CDF(x)", cdf_x
+        # print "CDF(y)", cdf_y
+
 
 
     def calculate_weight(self):
@@ -126,7 +150,6 @@ class Weighted_lru(Cache):
                          for k, v in self.ri.items()}
         self.weight = {k: int(v * self.maxsize)
                        for k, v in self.priority.items()}
-
 
     def print_stats(self):
         print "\nWeighted LRU:\n"
