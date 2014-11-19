@@ -2,3 +2,4 @@
 *.csv
 MSR/
 .idea/
+.DS_Store
