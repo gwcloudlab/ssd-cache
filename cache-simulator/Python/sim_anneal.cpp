@@ -27,6 +27,7 @@ Email: shah.shalin@gmail.com
 #include <time.h>
 #include <algorithm>
 #include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -579,10 +580,12 @@ int main(void) {
     simulatedAnnealing(node);
 
     /* Print the final solution */
-    printf("\nFinal Solution: %d\n", node.fitness());
+    //printf("\nFinal Solution: %d\n", node.fitness());
 
+    ofstream fout("sa_solution.txt");
     for (int i = 0; i < NUMBER_GROUPS; i++) {
-        printf("%d ", node.getValueOfIndex(i));
+        fout << node.getValueOfIndex(i) << endl;
+        //printf("%d ", node.getValueOfIndex(i));
     }
 
     /* Free Memory */

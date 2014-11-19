@@ -1,7 +1,6 @@
 from __future__ import division
 from cache_entry import Cache_entry
 from statsmodels import api as sm
-import sys
 import os
 import pprint
 from cache import Cache
@@ -11,6 +10,7 @@ from numpy import linspace, array
 
 
 class Weighted_lru(Cache):
+
     def __init__(self, blocksize, cachesize):
         Cache.__init__(self, blocksize, cachesize)
         # Number of cache items currently owned by each disk
@@ -19,7 +19,7 @@ class Weighted_lru(Cache):
         self.unique_blocks = defaultdict(set)
         self.rd = defaultdict(OrderedDict)  # Reuse distance
         self.ri = defaultdict()  # Reuse intensity
-        self.time_interval = 100  # t_w from vCacheShare
+        self.time_interval = 500  # t_w from vCacheShare
         self.timeout = 0  # Sentinel
 
     def sim_read(self, time_of_access, disk_id, block_address):
@@ -72,6 +72,7 @@ class Weighted_lru(Cache):
                 self.ri[disk] = (self.total_accesses[disk]
                                  / (len(self.unique_blocks[disk])
                                     * self.time_interval))
+        print self.ri
         self.total_accesses.clear()
         self.unique_blocks.clear()
 
@@ -79,11 +80,12 @@ class Weighted_lru(Cache):
         """
         For each block, the RD is calculated by the number of unique blocks
         accessed between two consecutive accesses of the block .
-        The initial value of a new block is set to 0 and if that block is accessed
-        again, it's index(position) in the list is obtained and it is moved to the
-        end of the list. The value (new RD) of this block will be the number of blocks
-        between it's index and it's current position (which is always at the end of the
-        list).
+        The initial value of a new block is set to 0 and if that block is
+        accessed again, it's index(position) in the list is obtained and
+        it is moved to the end of the list. The value (new RD) of this block
+        will be the number of blocks between it's index and it's current
+        position (which is always at the end of the list).
+
         self.rd[disk] = ordereddict{ block_address : RD value }
         """
         if block_address in self.rd[disk_id]:
@@ -96,56 +98,67 @@ class Weighted_lru(Cache):
 
     def construct_rd_cdf(self):
         """
-        The estimated hit ratio for each disk is calculated from it's RD by first
-        constructing a list ("histogram") of all RD values for each disk, i.e., All the RD
-        values (one value per block) is copied into a list. The cdf of each of the list is
-        calculated by using the sm.distributions.ECDF library function.
+        The estimated hit ratio for each disk is calculated from it's RD by
+        first constructing a list ("histogram") of all RD values for each disk,
+        i.e., All the RD values (one value per block) is copied into a list.
+        The cdf of each of the list is calculated by using the
+        sm.distributions' ECDF library function.
         """
 
         # calculate the normalized rd array
         rd_array = {}
         cdf_x = {}  # The x axis of the cdf
         cdf_y = {}  # The y axis of the cdf. i.e. the hit ratio
-        min_rd_value = 0.0 # initialize min and max rd values. This is the x-axis values
-        max_rd_value = 200.0
+        # initialize min and max rd values. This is the x-axis values
+        min_rd_value = 0.0
         with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
-            out_file.write(" " + str(4) + " " + str(50) + " " + str(1) + "\n")
-            out_file.write(" " + str(150) + "\n")
-
+            # Initialize all the header info for the out_file
+            out_file.write(" " + str(len(self.rd)) + " " + str(50) + " " + str(1) + "\n ")
+            out_file.write(str(150) + "\n")
+            # Set a flag to only run sa_anneal if cdf has data
+            cdf_not_empty = False
             for disk, block in self.rd.iteritems():
                 if sum(block.itervalues()) == 0:
-                    cdf_x[disk] = 0
-                    cdf_y[disk] = array([0])
-                    out_file.write(" " + str(disk+1) + "\n")
-                    for i in xrange(0, 50):
-                        out_file.write(" " + str(0) + " " + str(0) + "\n")
+                    max_rd_value = 0.0
+                    #cdf_x[disk] = array([0])
+                    #cdf_y[disk] = array([0])
+                    # out_file.write(" " + str(disk + 1) + "\n")
+                    #for i in xrange(0, 50):
+                        #out_file.write(" 1.00 1.00\n")
                 else:
-                    rd_array[disk] = sorted(block.itervalues())
-                    ecdf = sm.distributions.ECDF(rd_array[disk])
-                    # cdf_x[disk] = linspace(min(rd_array[disk]), max(rd_array[disk])) # For continuous x values
+                    cdf_not_empty = True
+                    max_rd_value = 200.0
+                rd_array[disk] = sorted(block.itervalues())
+                ecdf = sm.distributions.ECDF(rd_array[disk])
+                    # cdf_x[disk] = linspace(min(rd_array[disk]),
+                    #       max(rd_array[disk])) # For continuous x values
                     # cdf_x[disk] = rd_array[disk]
-                    cdf_x[disk] = linspace(min_rd_value, max_rd_value, 50) # 50 x tics
-                    cdf_y[disk] = ecdf(cdf_x[disk])
+                cdf_x[disk] = linspace(min_rd_value, max_rd_value, 50)  # 50 x tics
+                cdf_y[disk] = ecdf(cdf_x[disk])
 
-                    out_file.write(" " + str(disk+1) + "\n")
-                    for x_axis_value, y_axis_value in zip(cdf_x[disk], cdf_y[disk]):
-                        out_file.write(" " + str('%.2f' % y_axis_value) + " " + str('%.2f' % x_axis_value) + "\n")
-        os.system('/Users/sunny/Documents/ssd-cache/cache-simulator/Python/sim_anneal')
-        # print "CDF(x)", cdf_x
-        # print "CDF(y)", cdf_y
+                out_file.write(" " + str(disk + 1) + "\n")
+                for x_axis, y_axis in zip(cdf_x[disk], cdf_y[disk]):
+                    out_file.write(" " + str('%.2f' % y_axis) + " " + str('%.2f' % x_axis) + "\n")
 
-
+        if cdf_not_empty:
+            os.system("./sim_anneal")
+            sa_solution = [line.strip() for line in open("sa_solution.txt", 'r')]
+            sa_solution = map(int, sa_solution)
+            #print sa_solution
+            for disk, sa_value in zip(cdf_x, sa_solution):
+                print cdf_y[disk][sa_value], " ", cdf_x[disk][sa_value]
+            print "---"
 
     def calculate_weight(self):
         """
-            Calculate the weight of each VM/Disk based on their Priorities.
-            The Priorities are calculated from their reuse intensity values.
-            priority[disk] = ri / sum of ri's for all disks - normalized by sum.
-            weight[disk] = priority * max size of the cache.
-            For now, there is no upper bound.
+        Calculate the weight of each VM/Disk based on their Priorities.
+        The Priorities are calculated from their reuse intensity values.
+        priority[disk] = ri / sum of ri's for all disks - normalized by sum.
+        weight[disk] = priority * max size of the cache.
+        For now, there is no upper bound.
 
-            TO-DO: Calculate priorities using RD as well.
-            """
+        TO-DO: Calculate priorities using RD as well.
+        """
         self.priority = {k: v / sum(self.ri.values())
                          for k, v in self.ri.items()}
         self.weight = {k: int(v * self.maxsize)
