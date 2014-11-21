@@ -7,6 +7,7 @@ import os
 import csv
 import math
 from global_lru import Global_lru
+from random_lru import Random_lru
 from static_lru import Static_lru
 from weighted_lru import Weighted_lru
 from timeit import Timer
