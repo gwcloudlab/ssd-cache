@@ -8,10 +8,10 @@ SEC_TO_UNIX_EPOCH = 11644473600
 def WindowsTickToUnixSeconds(windowsTicks):
     return (windowsTicks / WINDOWS_TICK - SEC_TO_UNIX_EPOCH)
 
-with open(os.path.join("traces/MSR-Cambridge/web", "pre-processed_first_1000.csv"), "wb") as wr:
+with open(os.path.join("MSR", "src.csv"), "wb") as wr:
     sentinal = 0
     writr = csv.writer(wr, delimiter=',')
-    with open(os.path.join("traces/MSR-Cambridge/web", "sorted.csv"), "rb") as trace:
+    with open(os.path.join("MSR", "src1_0.csv"), "rb") as trace:
         for item in csv.reader(trace, delimiter=','):
             if sentinal == 0:
                 sentinal = WindowsTickToUnixSeconds(int(item[0]))
@@ -22,4 +22,5 @@ with open(os.path.join("traces/MSR-Cambridge/web", "pre-processed_first_1000.csv
             block_address = item[4]
             read_size = int(item[5])
             response_time = int(item[6])
-            writr.writerow([time_of_access, hostname, disk_id, operation, block_address, read_size, response_time])
+            if operation == "Read":
+                writr.writerow([time_of_access, hostname, disk_id, operation, block_address, read_size, response_time])

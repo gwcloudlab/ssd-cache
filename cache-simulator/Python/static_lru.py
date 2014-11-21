@@ -5,8 +5,8 @@ from cache import Cache
 
 class Static_lru(Cache):
 
-    def __init__(self, blocksize, cachesize):
-        Cache.__init__(self, blocksize, cachesize)
+    def __init__(self):
+        Cache.__init__(self)
 
     def sim_read(self, time_of_access, disk_id, block_address):
         if (block_address in self.ssd[disk_id]):

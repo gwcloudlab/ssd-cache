@@ -15,7 +15,7 @@ from timeit import Timer
 
 def run(world, filename):
     try:
-        with open(os.path.join('traces/MSR-Cambridge/web', filename),
+        with open(os.path.join('MSR', filename),
                   "rb") as trace:
             for item in csv.reader(trace, delimiter=','):
                 time_of_access = int(item[0])
@@ -48,16 +48,11 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'pre-processed_first_1000.csv'
-    blocksize = 4096
-    cachesize = 76684312576
-    # There is a total of ~480K unique block addresses in the input file.
-    # 196608000/4096 = 48K blocks (10% of total unique blocks)
-
-    algorithms = [Global_lru, Static_lru, Weighted_lru]
-    # algorithms = [Weighted_lru]
+    filename = 'pre.csv'
+    # algorithms = [Global_lru, Static_lru, Weighted_lru]
+    algorithms = [Weighted_lru]
     for algorithm in algorithms:
-        world = algorithm(blocksize, cachesize)
+        world = algorithm()
         t = Timer(lambda: run(world, filename))
         print 'It took %s seconds to run' % (t.timeit(number=1))
 

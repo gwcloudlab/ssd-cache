@@ -6,31 +6,33 @@ import pprint
 from cache import Cache
 from operator import itemgetter
 from collections import Counter, defaultdict, OrderedDict
-from numpy import linspace, array
+from numpy import linspace
 
 
 class Weighted_lru(Cache):
 
-    def __init__(self, blocksize, cachesize):
-        Cache.__init__(self, blocksize, cachesize)
+    def __init__(self):
+        Cache.__init__(self)
         # Number of cache items currently owned by each disk
         self.counter = defaultdict(lambda: 0)
         self.total_accesses = defaultdict(lambda: 0)
         self.unique_blocks = defaultdict(set)
         self.rd = defaultdict(OrderedDict)  # Reuse distance
         self.ri = defaultdict()  # Reuse intensity
-        self.time_interval = 500  # t_w from vCacheShare
+        self.anneal = defaultdict()
+        self.time_interval = 50  # t_w from vCacheShare
         self.timeout = 0  # Sentinel
+        self.ri_only_priority = True # Set to use RI values only to calculate priority
 
     def sim_read(self, time_of_access, disk_id, block_address):
         self.total_accesses[disk_id] += 1
         self.unique_blocks[disk_id].add(block_address)
-        self.calculate_reuse_distance(disk_id, block_address)
+        #self.calculate_reuse_distance(disk_id, block_address)
         if time_of_access > self.timeout:
             self.timeout = time_of_access + self.time_interval
             self.calculate_reuse_intensity()
+            #self.construct_rd_cdf()
             self.calculate_weight()  # Calculate weight according to the RI
-            self.construct_rd_cdf()
         if (block_address in self.ssd[disk_id]):
             cache_contents = self.ssd[disk_id].pop(block_address)
             self.ssd[disk_id][block_address] = cache_contents
@@ -39,9 +41,13 @@ class Weighted_lru(Cache):
         else:
             new_cache_block = Cache_entry()
             # If the given disk has no space
-            if sum(self.counter.values()) >= self.maxsize:
+            if sum(self.counter.values()) > self.maxsize:
                 id_to_evict = self.find_id_to_evict(disk_id, block_address)
-                self.ssd[id_to_evict].popitem(last=False)
+                try:
+                    self.ssd[id_to_evict].popitem(last=False)
+                except KeyError:
+                    print self.counter.values(), "\n", self.weight, "\n", id_to_evict
+                    exit(1)
                 self.counter[id_to_evict] -= 1
                 self.stats[id_to_evict, "evictions"] += 1
             self.ssd[disk_id][block_address] = new_cache_block
@@ -72,7 +78,7 @@ class Weighted_lru(Cache):
                 self.ri[disk] = (self.total_accesses[disk]
                                  / (len(self.unique_blocks[disk])
                                     * self.time_interval))
-        print self.ri
+
         self.total_accesses.clear()
         self.unique_blocks.clear()
 
@@ -136,6 +142,11 @@ class Weighted_lru(Cache):
                 cdf_x[disk] = linspace(min_rd_value, max_rd_value, 50)  # 50 x tics
                 cdf_y[disk] = ecdf(cdf_x[disk])
 
+                if not self.ri_only_priority:
+                    # Add ri values to rd
+                    cdf_y[disk] += 100 * self.ri[disk]
+
+
                 out_file.write(" " + str(disk + 1) + "\n")
                 for x_axis, y_axis in zip(cdf_x[disk], cdf_y[disk]):
                     out_file.write(" " + str('%.2f' % y_axis) + " " + str('%.2f' % x_axis) + "\n")
@@ -144,10 +155,9 @@ class Weighted_lru(Cache):
             os.system("./sim_anneal")
             sa_solution = [line.strip() for line in open("sa_solution.txt", 'r')]
             sa_solution = map(int, sa_solution)
-            #print sa_solution
+
             for disk, sa_value in zip(cdf_x, sa_solution):
-                print cdf_y[disk][sa_value], " ", cdf_x[disk][sa_value]
-            print "---"
+                self.anneal[disk] =  cdf_y[disk][sa_value]
 
     def calculate_weight(self):
         """
@@ -159,8 +169,15 @@ class Weighted_lru(Cache):
 
         TO-DO: Calculate priorities using RD as well.
         """
-        self.priority = {k: v / sum(self.ri.values())
+        if self.ri_only_priority:
+            self.priority = {k: v / sum(self.ri.values())
                          for k, v in self.ri.items()}
+        else:
+            # else it is either just rd or rd + ri. This is decided in
+            # the function construct rd_cdf
+            self.priority = {k: v / sum(self.anneal.values())
+                         for k, v in self.anneal.items()}
+
         self.weight = {k: int(v * self.maxsize)
                        for k, v in self.priority.items()}
 
