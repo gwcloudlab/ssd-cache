@@ -1,12 +1,14 @@
 from cache_entry import Cache_entry
 import pprint
 from cache import Cache
-
+from collections import defaultdict
 
 class Static_lru(Cache):
 
     def __init__(self):
         Cache.__init__(self)
+        self.divided_weight = self.maxsize/self.no_of_vms
+        self.weight = defaultdict(lambda: self.divided_weight)
 
     def sim_read(self, time_of_access, disk_id, block_address):
         if (block_address in self.ssd[disk_id]):

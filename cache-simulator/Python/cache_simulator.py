@@ -51,7 +51,7 @@ def display_results(ssd):
 def main():
     filename = 'pre.csv'
     # algorithms = [Global_lru, Static_lru, Weighted_lru]
-    algorithms = [Weighted_lru]
+    algorithms = [Global_lru]
     for algorithm in algorithms:
         world = algorithm()
         t = Timer(lambda: run(world, filename))
