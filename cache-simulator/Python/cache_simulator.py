@@ -18,7 +18,11 @@ def run(world, filename):
     try:
         with open(os.path.join('MSR', filename),
                   "rb") as trace:
+            num_lines = sum(2 for line in open(os.path.join('MSR', filename)))
+            one_percent_complete = num_lines / 100
+            lines_read = 0
             for item in csv.reader(trace, delimiter=','):
+                lines_read += 1
                 time_of_access = int(item[0])
                 # hostname = item[1]
                 disk_id = int(item[2])
@@ -31,6 +35,8 @@ def run(world, filename):
                     for block in xrange(blocks):
                         block_address += 1
                         world.sim_read(time_of_access, disk_id, block_address)
+                if(lines_read % one_percent_complete == 0):
+                    print num_lines / percentage_finish, " percent complete"
             # display_results(world.ssd)
             # pdb.set_trace()
         world.print_stats()
@@ -49,9 +55,9 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'pre.csv'
+    filename = 'sorted_full.csv'
     # algorithms = [Global_lru, Static_lru, Weighted_lru]
-    algorithms = [Global_lru]
+    algorithms = [Weighted_lru]
     for algorithm in algorithms:
         world = algorithm()
         t = Timer(lambda: run(world, filename))

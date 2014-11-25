@@ -22,16 +22,16 @@ class Weighted_lru(Cache):
         self.anneal = defaultdict()
         self.time_interval = 50  # t_w from vCacheShare
         self.timeout = 0  # Sentinel
-        self.ri_only_priority = True # Set to use RI values only to calculate priority
+        self.ri_only_priority = False # Set to use RI values only to calculate priority
 
     def sim_read(self, time_of_access, disk_id, block_address):
         self.total_accesses[disk_id] += 1
         self.unique_blocks[disk_id].add(block_address)
-        #self.calculate_reuse_distance(disk_id, block_address)
+        self.calculate_reuse_distance(disk_id, block_address)
         if time_of_access > self.timeout:
             self.timeout = time_of_access + self.time_interval
             self.calculate_reuse_intensity()
-            #self.construct_rd_cdf()
+            self.construct_rd_cdf()
             self.calculate_weight()  # Calculate weight according to the RI
         if (block_address in self.ssd[disk_id]):
             cache_contents = self.ssd[disk_id].pop(block_address)
