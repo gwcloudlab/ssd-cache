@@ -22,7 +22,7 @@ class Weighted_lru(Cache):
         self.anneal = defaultdict()
         self.time_interval = 50  # t_w from vCacheShare
         self.timeout = 0  # Sentinel
-        self.ri_only_priority = False # Set to use RI values only to calculate priority
+        self.ri_only_priority = True # Set to use RI values only to calculate priority
 
     def sim_read(self, time_of_access, disk_id, block_address):
         self.total_accesses[disk_id] += 1
@@ -119,33 +119,24 @@ class Weighted_lru(Cache):
         min_rd_value = 0.0
         with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
             # Initialize all the header info for the out_file
-            out_file.write(" " + str(len(self.rd)) + " " + str(50) + " " + str(1) + "\n ")
+            out_file.write(" " + str(len(self.rd)) + " " + str(500) + " " + str(1) + "\n ")
             out_file.write(str(150) + "\n")
             # Set a flag to only run sa_anneal if cdf has data
             cdf_not_empty = False
             for disk, block in self.rd.iteritems():
                 if sum(block.itervalues()) == 0:
                     max_rd_value = 0.0
-                    #cdf_x[disk] = array([0])
-                    #cdf_y[disk] = array([0])
-                    # out_file.write(" " + str(disk + 1) + "\n")
-                    #for i in xrange(0, 50):
-                        #out_file.write(" 1.00 1.00\n")
                 else:
                     cdf_not_empty = True
-                    max_rd_value = 200.0
+                    max_rd_value = self.maxsize
                 rd_array[disk] = sorted(block.itervalues())
                 ecdf = sm.distributions.ECDF(rd_array[disk])
-                    # cdf_x[disk] = linspace(min(rd_array[disk]),
-                    #       max(rd_array[disk])) # For continuous x values
-                    # cdf_x[disk] = rd_array[disk]
-                cdf_x[disk] = linspace(min_rd_value, max_rd_value, 50)  # 50 x tics
+                cdf_x[disk] = linspace(min_rd_value, max_rd_value, 500)  # 500 x tics
                 cdf_y[disk] = ecdf(cdf_x[disk])
 
                 if not self.ri_only_priority:
                     # Add ri values to rd
                     cdf_y[disk] += 100 * self.ri[disk]
-
 
                 out_file.write(" " + str(disk + 1) + "\n")
                 for x_axis, y_axis in zip(cdf_x[disk], cdf_y[disk]):
