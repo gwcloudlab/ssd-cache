@@ -139,7 +139,7 @@ GreedyObject **RATIO_OBJECTS;
 */
 void processData() {
     FILE *file;
-    file = fopen("/Users/sunny/Documents/ssd-cache/cache-simulator/Python/traces/wlru.dat", "r");
+    file = fopen("traces/wlru.dat", "r");
     if (file == NULL) {
         printf("wlru.dat File Not Found in Current Directory.");
         exit(1);
