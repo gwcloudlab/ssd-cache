@@ -18,7 +18,7 @@ def run(world, filename):
     try:
         with open(os.path.join('MSR', filename),
                   "rb") as trace:
-            num_lines = sum(2 for line in open(os.path.join('MSR', filename)))
+            num_lines = sum(1 for line in open(os.path.join('MSR', filename)))
             one_percent_complete = round(num_lines / 100)
             lines_read = 0
             for item in csv.reader(trace, delimiter=','):

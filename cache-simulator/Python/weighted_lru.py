@@ -32,7 +32,7 @@ class Weighted_lru(Cache):
             self.timeout = time_of_access + self.time_interval
             self.calculate_reuse_intensity()
             self.construct_rd_cdf()
-            self.calculate_weight()  # Calculate weight according to the RI
+            self.calculate_weight()
         if (block_address in self.ssd[disk_id]):
             cache_contents = self.ssd[disk_id].pop(block_address)
             self.ssd[disk_id][block_address] = cache_contents
