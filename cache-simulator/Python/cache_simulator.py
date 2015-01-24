@@ -14,11 +14,9 @@ from timeit import Timer
 # import pdb
 
 
-def run(world, filename):
+def run(world, filename, num_lines, no_of_vms):
     try:
-        with open(os.path.join('MSR', filename),
-                  "rb") as trace:
-            num_lines = sum(1 for line in open(os.path.join('MSR', filename)))
+        with open(os.path.join('MSR', filename),"rb") as trace:
             one_percent_complete = round(num_lines / 100)
             lines_read = 0
             for item in csv.reader(trace, delimiter=','):
@@ -33,8 +31,10 @@ def run(world, filename):
                 blocks = int(math.ceil(read_size / 4096.0))
                 if operation == "Read":
                     for block in xrange(blocks):
-                        block_address += 1
+                        if block > 0:
+                            block_address += 1
                         world.sim_read(time_of_access, disk_id, block_address)
+                        #print lines_read
                 if(lines_read % one_percent_complete == 0):
                     print 100 * lines_read / num_lines, " percent complete"
             # display_results(world.ssd)
@@ -55,12 +55,25 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'pre.csv'
-    # algorithms = [Global_lru, Static_lru, Weighted_lru]
+    filename = 'pre-processed.csv'
+
+    # calculate the number of lines and the
+    # number of VMs in the input file.
+
+    num_lines = 0
+    no_of_vms = 0
+    with open(os.path.join('MSR', filename)) as trace:
+        for item in csv.reader(trace, delimiter=','):
+            num_lines += 1
+            disk_id = int(item[2])
+            if disk_id > no_of_vms:
+                no_of_vms = disk_id
+
+    #algorithms = [Global_lru, Static_lru, Weighted_lru]
     algorithms = [Weighted_lru]
     for algorithm in algorithms:
         world = algorithm()
-        t = Timer(lambda: run(world, filename))
+        t = Timer(lambda: run(world, filename, num_lines, no_of_vms))
         print 'It took %s seconds to run' % (t.timeit(number=1))
 
 if __name__ == '__main__':

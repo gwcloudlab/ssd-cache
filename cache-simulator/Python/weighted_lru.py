@@ -7,6 +7,7 @@ from cache import Cache
 from operator import itemgetter
 from collections import Counter, defaultdict, OrderedDict
 from numpy import linspace
+import hyperloglog
 
 
 class Weighted_lru(Cache):
@@ -16,17 +17,25 @@ class Weighted_lru(Cache):
         # Number of cache items currently owned by each disk
         self.counter = defaultdict(lambda: 0)
         self.total_accesses = defaultdict(lambda: 0)
-        self.unique_blocks = defaultdict(set)
+        self.unique_blocks = {}
         self.rd = defaultdict(OrderedDict)  # Reuse distance
         self.ri = defaultdict()  # Reuse intensity
         self.anneal = defaultdict()
         self.time_interval = 50  # t_w from vCacheShare
         self.timeout = 0  # Sentinel
         self.ri_only_priority = True # Set to use RI values only to calculate priority
+        for x in xrange(self.no_of_vms):
+            hyperll = hyperloglog.HyperLogLog(0.01)
+            self.unique_blocks[x] = hyperll
 
     def sim_read(self, time_of_access, disk_id, block_address):
         self.total_accesses[disk_id] += 1
-        self.unique_blocks[disk_id].add(block_address)
+        try:
+            self.unique_blocks[disk_id].add(str(block_address))
+        except KeyError:
+            print "Error in :", disk_id, block_address
+            print "Length of the dict: ", len(self.unique_blocks)
+            exit(1)
         self.calculate_reuse_distance(disk_id, block_address)
         if time_of_access > self.timeout:
             self.timeout = time_of_access + self.time_interval
@@ -78,9 +87,6 @@ class Weighted_lru(Cache):
                 self.ri[disk] = (self.total_accesses[disk]
                                  / (len(self.unique_blocks[disk])
                                     * self.time_interval))
-
-        self.total_accesses.clear()
-        self.unique_blocks.clear()
 
     def calculate_reuse_distance(self, disk_id, block_address):
         """
