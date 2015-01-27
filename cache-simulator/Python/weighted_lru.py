@@ -8,6 +8,8 @@ from operator import itemgetter
 from collections import Counter, defaultdict, OrderedDict
 from numpy import linspace
 import hyperloglog
+import time
+import random
 
 
 class Weighted_lru(Cache):
@@ -28,14 +30,18 @@ class Weighted_lru(Cache):
             hyperll = hyperloglog.HyperLogLog(0.01)
             self.unique_blocks[x] = hyperll
 
+    def timing(f):
+        def wrap(*args):
+            time1 = time.time()
+            ret = f(*args)
+            time2 = time.time()
+            print '%s function took %0.3f ms' % (f.func_name, (time2-time1)*1000.0)
+            return ret
+        return wrap
+
     def sim_read(self, time_of_access, disk_id, block_address):
         self.total_accesses[disk_id] += 1
-        try:
-            self.unique_blocks[disk_id].add(str(block_address))
-        except KeyError:
-            print "Error in :", disk_id, block_address
-            print "Length of the dict: ", len(self.unique_blocks)
-            exit(1)
+        self.unique_blocks[disk_id].add(str(block_address))
         self.calculate_reuse_distance(disk_id, block_address)
         if time_of_access > self.timeout:
             self.timeout = time_of_access + self.time_interval
@@ -74,6 +80,7 @@ class Weighted_lru(Cache):
             id_to_be_evicted = disk_id
         return id_to_be_evicted
 
+    @timing
     def calculate_reuse_intensity(self):
         """
         Reuse Intensity = S_{total} / (t_w * S_unique)
@@ -100,14 +107,17 @@ class Weighted_lru(Cache):
 
         self.rd[disk] = ordereddict{ block_address : RD value }
         """
+
         if block_address in self.rd[disk_id]:
             indx = self.rd[disk_id].keys().index(block_address)
+            #indx = 1
             self.rd[disk_id].pop(block_address)
             sz = len(self.rd[disk_id])
             self.rd[disk_id][block_address] = sz - indx
         else:
             self.rd[disk_id][block_address] = 0
 
+    @timing
     def construct_rd_cdf(self):
         """
         The estimated hit ratio for each disk is calculated from it's RD by
@@ -137,7 +147,7 @@ class Weighted_lru(Cache):
                     max_rd_value = self.maxsize
                 rd_array[disk] = sorted(block.itervalues())
                 ecdf = sm.distributions.ECDF(rd_array[disk])
-                cdf_x[disk] = linspace(min_rd_value, max_rd_value, 500)  # 500 x tics
+                cdf_x[disk] = linspace(min_rd_value, max_rd_value, 500)# 500 xtics
                 cdf_y[disk] = ecdf(cdf_x[disk])
 
                 if not self.ri_only_priority:
@@ -154,7 +164,7 @@ class Weighted_lru(Cache):
             sa_solution = map(int, sa_solution)
 
             for disk, sa_value in zip(cdf_x, sa_solution):
-                self.anneal[disk] =  cdf_y[disk][sa_value]
+                self.anneal[disk] = cdf_y[disk][sa_value]
 
     def calculate_weight(self):
         """
@@ -167,16 +177,13 @@ class Weighted_lru(Cache):
         TO-DO: Calculate priorities using RD as well.
         """
         if self.ri_only_priority:
-            self.priority = {k: v / sum(self.ri.values())
-                         for k, v in self.ri.items()}
+            self.priority = {k: v / sum(self.ri.values()) for k, v in self.ri.items()}
         else:
             # else it is either just rd or rd + ri. This is decided in
             # the function construct rd_cdf
-            self.priority = {k: v / sum(self.anneal.values())
-                         for k, v in self.anneal.items()}
+            self.priority = {k: v / sum(self.anneal.values()) for k, v in self.anneal.items()}
 
-        self.weight = {k: int(v * self.maxsize)
-                       for k, v in self.priority.items()}
+        self.weight = {k: int(v * self.maxsize) for k, v in self.priority.items()}
 
     def print_stats(self):
         print "\nWeighted LRU:\n"
