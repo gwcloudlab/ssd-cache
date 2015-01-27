@@ -6,8 +6,9 @@ from collections import OrderedDict
 
 class Global_lru(Cache):
 
-    def __init__(self):
+    def __init__(self, no_of_vms):
         Cache.__init__(self)
+        self.no_of_vms = no_of_vms
         self.ssd = OrderedDict()
 
     def sim_read(self, time_of_access, disk_id, block_address):

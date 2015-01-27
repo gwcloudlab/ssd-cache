@@ -5,9 +5,10 @@ from collections import defaultdict
 
 class Static_lru(Cache):
 
-    def __init__(self):
+    def __init__(self, no_of_vms):
         Cache.__init__(self)
-        self.divided_weight = self.maxsize/self.no_of_vms
+        self.no_of_vms = no_of_vms
+        self.divided_weight = self.maxsize/(self.no_of_vms + 1) # starts from 0
         self.weight = defaultdict(lambda: self.divided_weight)
 
     def sim_read(self, time_of_access, disk_id, block_address):

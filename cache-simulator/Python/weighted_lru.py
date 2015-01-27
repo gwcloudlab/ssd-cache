@@ -14,18 +14,21 @@ import random
 
 class Weighted_lru(Cache):
 
-    def __init__(self):
+    def __init__(self, no_of_vms):
         Cache.__init__(self)
+        self.anneal = defaultdict()
         # Number of cache items currently owned by each disk
         self.counter = defaultdict(lambda: 0)
-        self.total_accesses = defaultdict(lambda: 0)
-        self.unique_blocks = {}
-        self.rd = defaultdict(OrderedDict)  # Reuse distance
+        self.no_of_vms = no_of_vms
+        self.rd = defaultdict(defaultdict)  # Reuse distance
+        self.rd_blocks = defaultdict(list)
+        self.rd_size = defaultdict(lambda: 0)
         self.ri = defaultdict()  # Reuse intensity
-        self.anneal = defaultdict()
         self.time_interval = 50  # t_w from vCacheShare
         self.timeout = 0  # Sentinel
+        self.total_accesses = defaultdict(lambda: 0)
         self.ri_only_priority = True # Set to use RI values only to calculate priority
+        self.unique_blocks = {}
         for x in xrange(self.no_of_vms):
             hyperll = hyperloglog.HyperLogLog(0.01)
             self.unique_blocks[x] = hyperll
@@ -109,13 +112,14 @@ class Weighted_lru(Cache):
         """
 
         if block_address in self.rd[disk_id]:
-            indx = self.rd[disk_id].keys().index(block_address)
-            #indx = 1
-            self.rd[disk_id].pop(block_address)
-            sz = len(self.rd[disk_id])
-            self.rd[disk_id][block_address] = sz - indx
+            indx = self.rd_blocks[disk_id].index(block_address)
+            del self.rd_blocks[disk_id][indx]
+            self.rd_blocks[disk_id].append(block_address)
+            self.rd[disk_id][block_address] = self.rd_size[disk_id] - indx - 1
         else:
-            self.rd[disk_id][block_address] = 0
+            self.rd_blocks[disk_id].append(block_address)
+            self.rd[disk_id][block_address] = -1
+            self.rd_size[disk_id] += 1
 
     @timing
     def construct_rd_cdf(self):

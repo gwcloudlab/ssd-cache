@@ -16,7 +16,7 @@ from timeit import Timer
 
 def run(world, filename, num_lines, no_of_vms):
     try:
-        with open(os.path.join('MSR', filename),"rb") as trace:
+        with open(os.path.join('MSR', filename), "rb") as trace:
             one_percent_complete = round(num_lines / 100)
             lines_read = 0
             for item in csv.reader(trace, delimiter=','):
@@ -34,7 +34,7 @@ def run(world, filename, num_lines, no_of_vms):
                         if block > 0:
                             block_address += 1
                         world.sim_read(time_of_access, disk_id, block_address)
-                        #print lines_read
+                        # print lines_read
                 if(lines_read % one_percent_complete == 0):
                     print 100 * lines_read / num_lines, " percent complete"
             # display_results(world.ssd)
@@ -69,10 +69,11 @@ def main():
             if disk_id > no_of_vms:
                 no_of_vms = disk_id
 
-    #algorithms = [Global_lru, Static_lru, Weighted_lru]
-    algorithms = [Weighted_lru]
+    print "Total no. of vms: ", no_of_vms + 1 # starts from 0
+    algorithms = [Global_lru, Static_lru]
+    # algorithms = [Weighted_lru]
     for algorithm in algorithms:
-        world = algorithm()
+        world = algorithm(no_of_vms)
         t = Timer(lambda: run(world, filename, num_lines, no_of_vms))
         print 'It took %s seconds to run' % (t.timeit(number=1))
 
