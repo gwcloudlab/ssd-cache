@@ -16,7 +16,7 @@ class Cache(object):
         self.weight = defaultdict(lambda: 10000)
         # ~ 1 million cache entries
         # self.maxsize = sum(self.weight.values()) + 100000
-        self.maxsize = 100000
+        self.maxsize = 1000
         self.stats = defaultdict(lambda: 0)
 
     def delete(self):

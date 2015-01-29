@@ -69,9 +69,10 @@ def main():
             if disk_id > no_of_vms:
                 no_of_vms = disk_id
 
-    print "Total no. of vms: ", no_of_vms + 1 # starts from 0
-    algorithms = [Global_lru, Static_lru]
-    # algorithms = [Weighted_lru]
+    no_of_vms += 1 # To account for index starting from 0
+    print "Total no. of vms: ", no_of_vms
+    # algorithms = [Global_lru, Static_lru, Weighted_lru]
+    algorithms = [Weighted_lru]
     for algorithm in algorithms:
         world = algorithm(no_of_vms)
         t = Timer(lambda: run(world, filename, num_lines, no_of_vms))

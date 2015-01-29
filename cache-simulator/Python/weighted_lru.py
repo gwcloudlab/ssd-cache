@@ -9,6 +9,7 @@ from collections import Counter, defaultdict, OrderedDict
 from numpy import linspace
 import hyperloglog
 import time
+from timeit import Timer
 import random
 
 
@@ -24,10 +25,10 @@ class Weighted_lru(Cache):
         self.rd_blocks = defaultdict(list)
         self.rd_size = defaultdict(lambda: 0)
         self.ri = defaultdict()  # Reuse intensity
-        self.time_interval = 50  # t_w from vCacheShare
+        self.time_interval = 500  # t_w from vCacheShare
         self.timeout = 0  # Sentinel
         self.total_accesses = defaultdict(lambda: 0)
-        self.ri_only_priority = True # Set to use RI values only to calculate priority
+        self.ri_only_priority = False # Set to use RI values only to calculate priority
         self.unique_blocks = {}
         for x in xrange(self.no_of_vms):
             hyperll = hyperloglog.HyperLogLog(0.01)
@@ -151,7 +152,7 @@ class Weighted_lru(Cache):
                     max_rd_value = self.maxsize
                 rd_array[disk] = sorted(block.itervalues())
                 ecdf = sm.distributions.ECDF(rd_array[disk])
-                cdf_x[disk] = linspace(min_rd_value, max_rd_value, 500)# 500 xtics
+                cdf_x[disk] = linspace(min_rd_value, max_rd_value, 50)# 50 xtics
                 cdf_y[disk] = ecdf(cdf_x[disk])
 
                 if not self.ri_only_priority:
@@ -163,7 +164,9 @@ class Weighted_lru(Cache):
                     out_file.write(" " + str('%.2f' % y_axis) + " " + str('%.2f' % x_axis) + "\n")
 
         if cdf_not_empty:
-            os.system("./sim_anneal")
+            # os.system("./sim_anneal")
+            tt = Timer(lambda: os.system("./sim_anneal"))
+            print 'It took %s seconds to run sim_anneal' % (tt.timeit(number=1))
             sa_solution = [line.strip() for line in open("sa_solution.txt", 'r')]
             sa_solution = map(int, sa_solution)
 
