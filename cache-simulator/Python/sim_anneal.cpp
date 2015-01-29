@@ -123,7 +123,7 @@ int **VALUES;                       // populated in processData()
 int VALID_SOLUTION_ITERATIONS;      // populated in main()
 
 /* Simulated Annealing variables */
-int ANNEALING_ITERATIONS = 100000;
+int ANNEALING_ITERATIONS = 1000; // CHANGED THIS TO SPEEDUP THE PROGRAM
 int RANDOM_CHANGES; // populated in main()
 const double ANNEALING_FACTOR = 10;
 

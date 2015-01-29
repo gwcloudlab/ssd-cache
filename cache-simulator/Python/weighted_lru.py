@@ -138,10 +138,12 @@ class Weighted_lru(Cache):
         cdf_y = {}  # The y axis of the cdf. i.e. the hit ratio
         # initialize min and max rd values. This is the x-axis values
         min_rd_value = 0.0
+        no_of_cdf_x_values = 50
+        size_of_the_cache = 1000
         with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
             # Initialize all the header info for the out_file
-            out_file.write(" " + str(len(self.rd)) + " " + str(500) + " " + str(1) + "\n ")
-            out_file.write(str(150) + "\n")
+            out_file.write(" " + str(len(self.rd)) + " " + str(no_of_cdf_x_values) + " " + str(1) + "\n ")
+            out_file.write(str(size_of_the_cache) + "\n")
             # Set a flag to only run sa_anneal if cdf has data
             cdf_not_empty = False
             for disk, block in self.rd.iteritems():
@@ -152,26 +154,30 @@ class Weighted_lru(Cache):
                     max_rd_value = self.maxsize
                 rd_array[disk] = sorted(block.itervalues())
                 ecdf = sm.distributions.ECDF(rd_array[disk])
-                cdf_x[disk] = linspace(min_rd_value, max_rd_value, 50)# 50 xtics
+                cdf_x[disk] = linspace(min_rd_value, max_rd_value, no_of_cdf_x_values)# 50 xtics
                 cdf_y[disk] = ecdf(cdf_x[disk])
 
-                if not self.ri_only_priority:
+                #if not self.ri_only_priority:
                     # Add ri values to rd
-                    cdf_y[disk] += 100 * self.ri[disk]
+                    #cdf_y[disk] += 100 * self.ri[disk]
 
                 out_file.write(" " + str(disk + 1) + "\n")
                 for x_axis, y_axis in zip(cdf_x[disk], cdf_y[disk]):
                     out_file.write(" " + str('%.2f' % y_axis) + " " + str('%.2f' % x_axis) + "\n")
 
         if cdf_not_empty:
-            # os.system("./sim_anneal")
-            tt = Timer(lambda: os.system("./sim_anneal"))
-            print 'It took %s seconds to run sim_anneal' % (tt.timeit(number=1))
+            os.system("./sim_anneal")
+            #tt = Timer(lambda: os.system("./sim_anneal"))
+            #print 'It took %s seconds to run sim_anneal' % (tt.timeit(number=1))
             sa_solution = [line.strip() for line in open("sa_solution.txt", 'r')]
             sa_solution = map(int, sa_solution)
 
             for disk, sa_value in zip(cdf_x, sa_solution):
-                self.anneal[disk] = cdf_y[disk][sa_value]
+                self.anneal[disk] = cdf_x[disk][sa_value]
+                print "anneal: ", self.anneal
+                print "sa_solution: ", sa_solution
+                print cdf_x
+                print cdf_y
 
     def calculate_weight(self):
         """
@@ -191,6 +197,8 @@ class Weighted_lru(Cache):
             self.priority = {k: v / sum(self.anneal.values()) for k, v in self.anneal.items()}
 
         self.weight = {k: int(v * self.maxsize) for k, v in self.priority.items()}
+
+        print "Weight: ", self.weight, "\n"
 
     def print_stats(self):
         print "\nWeighted LRU:\n"

@@ -55,7 +55,7 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'pre-processed.csv'
+    filename = 'pre.csv'
 
     # calculate the number of lines and the
     # number of VMs in the input file.
