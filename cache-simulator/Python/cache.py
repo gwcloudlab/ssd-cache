@@ -13,7 +13,7 @@ class Cache(object):
         self.ssd = defaultdict(OrderedDict)
         # self.no_of_vms = 4  # IDs 0 to 4
         # Baseline values - min cache for each VM
-        self.weight = defaultdict(lambda: 10000)
+        self.weight = defaultdict(lambda: 1000)
         # ~ 1 million cache entries
         # self.maxsize = sum(self.weight.values()) + 100000
         self.maxsize = 1000

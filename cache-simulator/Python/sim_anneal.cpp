@@ -123,7 +123,7 @@ int **VALUES;                       // populated in processData()
 int VALID_SOLUTION_ITERATIONS;      // populated in main()
 
 /* Simulated Annealing variables */
-int ANNEALING_ITERATIONS = 1000; // CHANGED THIS TO SPEEDUP THE PROGRAM
+int ANNEALING_ITERATIONS = 10000;
 int RANDOM_CHANGES; // populated in main()
 const double ANNEALING_FACTOR = 10;
 
@@ -580,12 +580,12 @@ int main(void) {
     simulatedAnnealing(node);
 
     /* Print the final solution */
-    //printf("\nFinal Solution: %d\n", node.fitness());
+    // printf("\nFinal Solution: %d\n", node.fitness());
 
     ofstream fout("sa_solution.txt");
     for (int i = 0; i < NUMBER_GROUPS; i++) {
         fout << node.getValueOfIndex(i) << endl;
-        //printf("%d ", node.getValueOfIndex(i));
+        // printf("%d ", node.getValueOfIndex(i));
     }
 
     /* Free Memory */

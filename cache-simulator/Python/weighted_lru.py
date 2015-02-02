@@ -137,18 +137,17 @@ class Weighted_lru(Cache):
         cdf_x = {}  # The x axis of the cdf
         cdf_y = {}  # The y axis of the cdf. i.e. the hit ratio
         # initialize min and max rd values. This is the x-axis values
-        min_rd_value = 0.0
+        min_rd_value = 1.0
         no_of_cdf_x_values = 50
-        size_of_the_cache = 1000
         with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
             # Initialize all the header info for the out_file
             out_file.write(" " + str(len(self.rd)) + " " + str(no_of_cdf_x_values) + " " + str(1) + "\n ")
-            out_file.write(str(size_of_the_cache) + "\n")
+            out_file.write(str(self.maxsize) + "\n")
             # Set a flag to only run sa_anneal if cdf has data
             cdf_not_empty = False
             for disk, block in self.rd.iteritems():
                 if sum(block.itervalues()) == 0:
-                    max_rd_value = 0.0
+                    max_rd_value = 1.0
                 else:
                     cdf_not_empty = True
                     max_rd_value = self.maxsize
@@ -156,10 +155,11 @@ class Weighted_lru(Cache):
                 ecdf = sm.distributions.ECDF(rd_array[disk])
                 cdf_x[disk] = linspace(min_rd_value, max_rd_value, no_of_cdf_x_values)# 50 xtics
                 cdf_y[disk] = ecdf(cdf_x[disk])
+                cdf_y[disk] *= 100 # CPP program doesn't work well with float
 
-                #if not self.ri_only_priority:
+                if not self.ri_only_priority:
                     # Add ri values to rd
-                    #cdf_y[disk] += 100 * self.ri[disk]
+                    cdf_y[disk] += 10000 * self.ri[disk] # *10K to compensate for 'cdf_y[disk] *= 100'
 
                 out_file.write(" " + str(disk + 1) + "\n")
                 for x_axis, y_axis in zip(cdf_x[disk], cdf_y[disk]):
@@ -174,10 +174,10 @@ class Weighted_lru(Cache):
 
             for disk, sa_value in zip(cdf_x, sa_solution):
                 self.anneal[disk] = cdf_x[disk][sa_value]
-                print "anneal: ", self.anneal
-                print "sa_solution: ", sa_solution
-                print cdf_x
-                print cdf_y
+                #print "anneal: ", self.anneal
+                #print "sa_solution: ", sa_solution
+                #print cdf_x
+                #print cdf_y
 
     def calculate_weight(self):
         """
