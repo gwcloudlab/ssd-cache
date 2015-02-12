@@ -10,13 +10,14 @@ class Cache(object):
         # This will be the actual cache. It is a nested dict.
         # Default dict is the disk ID and the ordered dict are
         # the blocks inside the disk.
-        self.ssd = defaultdict(OrderedDict)
-        # self.no_of_vms = 4  # IDs 0 to 4
+        self.ssd = {}
+        self.pcie_ssd = {}
         # Baseline values - min cache for each VM
         self.weight = defaultdict(lambda: 1000)
-        # ~ 1 million cache entries
         # self.maxsize = sum(self.weight.values()) + 100000
-        self.maxsize = 1000
+        self.maxsize = 100000
+        self.maxsize_ssd = 100000
+        self.maxsize_pcie_ssd = 10000
         self.stats = defaultdict(lambda: 0)
 
     def delete(self):
