@@ -31,6 +31,12 @@ def sim_read(self, time_of_access, disk_id, block_address):
         self.size_lookup[(disk_id, cache_layer)] -= 1
         del self.block_lookup[(disk_id, block_address)]
 
+    def add_item_to_cache(self, cache_layer, disk_id, block_address, cache_contents):
+        self.eval(cache_layer)[(disk_id, block_address)] = cache_contents
+        self.rd_blocks[(disk_id, cache_layer)].append(block_address)
+        self.size_lookup[(disk_id, cache_layer)] += 1
+        self.block_lookup[(disk_id, block_address)] = cache_layer
+
     def handle_hit_miss_evict():
         try:
             cache_layer = self.block_lookup(UUID)
