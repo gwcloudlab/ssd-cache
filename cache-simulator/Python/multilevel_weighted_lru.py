@@ -25,9 +25,12 @@ def sim_read(self, time_of_access, disk_id, block_address):
         if time_of_access > self.timeout:
             pass
 
-    def remove_item_from_cache(self, cache_layer, disk_id, block_address):
-        self.eval(cache_layer).pop(disk_id, block_address)
+    def remove_item_from_cache(self, cache_layer, disk_id=None, block_address=None):
+        if disk_id == None:
+            disk_id = find_id_to_evict(cache_layer)
+            block_address = self.rd_blocks[(disk_id, cache_layer)][0] 
         self.rd_blocks[(disk_id, cache_layer)].remove(block_address)
+        self.eval(cache_layer).pop(disk_id, block_address)
         self.size_lookup[(disk_id, cache_layer)] -= 1
         del self.block_lookup[(disk_id, block_address)]
 
@@ -37,27 +40,30 @@ def sim_read(self, time_of_access, disk_id, block_address):
         self.size_lookup[(disk_id, cache_layer)] += 1
         self.block_lookup[(disk_id, block_address)] = cache_layer
 
-    def handle_hit_miss_evict():
+    def handle_hit_miss_evict(self, UUID):
         try:
             cache_layer = self.block_lookup(UUID)
             #cache = eval(cache_layer)
             self.stats[disk_id, cache_layer, 'hits'] += 1
             if cache_layer == 'pcie_ssd':
-                indx = self.rd_blocks[(disk_id, cache_layer)].index(block_address)
-                del self.rd_blocks[(disk_id, cache_layer)][indx]
+                self.rd_blocks[(disk_id, cache_layer)].remove(block_address)
                 self.rd_blocks[(disk_id, 'pcie_ssd')].append(block_address)
             else:
                 #evict item from ssd
                 #remove item from ssd list
+                removed_item = remove_item_from_cache('ssd', disk_id, block_address)
                 #add removed item to pcie
-                #append removed item to pcie list
+                #append removedj item to pcie list
                     #change the values on the lookup tables
+                add_item_to_cache('pcie_ssd', disk_id, block_address, removed_item)
                 #evict item from pcie ssd based on LRU
                 #remove item from pcie ssd list
+                removed_item = remove_item_from_cache('pcie_ssd', disk_id, block_address)
                 #add removed item to ssd
                 #append removed item to ssd list
                     #change the values on the lookup tables
                     #May be changing the values need to be done only once?
+                add_item_to_cache('ssd', disk_id, block_address, removed_item)
         except KeyError:
             self.stats[disk_id, 'miss'] += 1
             cache_layer = 'pcie_ssd'
@@ -65,24 +71,22 @@ def sim_read(self, time_of_access, disk_id, block_address):
             #add item to pcie ssd
             #append item to pcie list
                 #change the values on the lookup tables
+            add_item_to_cache('pcie_ssd', disk_id, block_address, removed_item)
             #evict item from pcie ssd based on LRU
             #remove item from pcie ssd list
                 #change the values on the lookup tables
+            removed_item = remove_item_from_cache('pcie_ssd', disk_id, block_address)
             #add removed item to ssd
             #append removed item to ssd list
+            add_item_to_cache('ssd', disk_id, block_address, removed_item)
             #remove item from ssd based on LRU
             #remove item from ssd list
                 #change the values on the lookup tables
                 #May be changing the values need to be done only once?
-            self.block_lookup(UUID) = cache_layer
-            self.rd_blocks[(disk_id, cache_layer)].append(block_address)
-            new_cache_block = Cache_entry()
-            self.pcie_ssd[UUID] = new_cache_block
-            find_ids_to_evict(disk_id)
-            self.size_lookup[(disk_id, cache_layer)] += 1
-            cache = eval(cache_layer)
+            removed_item = remove_item_from_cache('ssd', disk_id, block_address)
 
-    def find_ids_to_evict(self, disk_id):
+
+    def find_ids_to_evict(self, cache_layer, disk_id):
         """
         This will take in the input of a disk id that will
         be added to the top most cache level and give as
@@ -94,9 +98,9 @@ def sim_read(self, time_of_access, disk_id, block_address):
         # Need a table for currenly allocated weight
         # --- Initially assume static weights for each cache layer
         # Consult the list to get the LRU's of an id's block_adress
-        ids_to_be_evicted = []
-        self.size_lookup[(disk_id, cache_layer)] += 1
-        for ids, counts in self.counter.iteritems():
-            if counts > self.weight[ids]:
-                ids_to_be_evicted.append(ids)
+        for ids, count in self.size_lookup.iteritems():
+            if ids[1] == cache_layer:
+                if count >= self.weight[ids]:
+                    return ids
+        return disk_id
 
