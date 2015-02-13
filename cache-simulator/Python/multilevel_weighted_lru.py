@@ -25,6 +25,12 @@ def sim_read(self, time_of_access, disk_id, block_address):
         if time_of_access > self.timeout:
             pass
 
+    def remove_item_from_cache(self, cache_layer, disk_id, block_address):
+        self.eval(cache_layer).pop(disk_id, block_address)
+        self.rd_blocks[(disk_id, cache_layer)].remove(block_address)
+        self.size_lookup[(disk_id, cache_layer)] -= 1
+        del self.block_lookup[(disk_id, block_address)]
+
     def handle_hit_miss_evict():
         try:
             cache_layer = self.block_lookup(UUID)
@@ -49,6 +55,7 @@ def sim_read(self, time_of_access, disk_id, block_address):
         except KeyError:
             self.stats[disk_id, 'miss'] += 1
             cache_layer = 'pcie_ssd'
+            #calculate weights and find items to evict on both caches
             #add item to pcie ssd
             #append item to pcie list
                 #change the values on the lookup tables
