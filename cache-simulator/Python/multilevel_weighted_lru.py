@@ -33,6 +33,9 @@ def sim_read(self, time_of_access, disk_id, block_address):
         self.eval(cache_layer).pop(disk_id, block_address)
         self.size_lookup[(disk_id, cache_layer)] -= 1
         del self.block_lookup[(disk_id, block_address)]
+        return { 'disk_id':disk_id, 
+                 'block_address': block_address, 
+                 'cache_contents': cache_contents }
 
     def add_item_to_cache(self, cache_layer, disk_id, block_address, cache_contents):
         self.eval(cache_layer)[(disk_id, block_address)] = cache_contents
@@ -43,46 +46,24 @@ def sim_read(self, time_of_access, disk_id, block_address):
     def handle_hit_miss_evict(self, UUID):
         try:
             cache_layer = self.block_lookup(UUID)
-            #cache = eval(cache_layer)
             self.stats[disk_id, cache_layer, 'hits'] += 1
             if cache_layer == 'pcie_ssd':
                 self.rd_blocks[(disk_id, cache_layer)].remove(block_address)
                 self.rd_blocks[(disk_id, 'pcie_ssd')].append(block_address)
             else:
-                #evict item from ssd
-                #remove item from ssd list
                 removed_item = remove_item_from_cache('ssd', disk_id, block_address)
-                #add removed item to pcie
-                #append removedj item to pcie list
-                    #change the values on the lookup tables
-                add_item_to_cache('pcie_ssd', disk_id, block_address, removed_item)
-                #evict item from pcie ssd based on LRU
-                #remove item from pcie ssd list
-                removed_item = remove_item_from_cache('pcie_ssd', disk_id, block_address)
-                #add removed item to ssd
-                #append removed item to ssd list
-                    #change the values on the lookup tables
-                    #May be changing the values need to be done only once?
-                add_item_to_cache('ssd', disk_id, block_address, removed_item)
+                add_item_to_cache( 'pcie_ssd', removed_item['disk_id'], 
+                                    removed_item['block_address'], removed_item['cache_contents'])
+                removed_item = remove_item_from_cache('pcie_ssd')
+                add_item_to_cache( 'ssd', removed_item['disk_id'], 
+                                    removed_item['block_address'], removed_item['cache_contents'])
         except KeyError:
             self.stats[disk_id, 'miss'] += 1
             cache_layer = 'pcie_ssd'
-            #calculate weights and find items to evict on both caches
-            #add item to pcie ssd
-            #append item to pcie list
-                #change the values on the lookup tables
-            add_item_to_cache('pcie_ssd', disk_id, block_address, removed_item)
-            #evict item from pcie ssd based on LRU
-            #remove item from pcie ssd list
-                #change the values on the lookup tables
-            removed_item = remove_item_from_cache('pcie_ssd', disk_id, block_address)
-            #add removed item to ssd
-            #append removed item to ssd list
-            add_item_to_cache('ssd', disk_id, block_address, removed_item)
-            #remove item from ssd based on LRU
-            #remove item from ssd list
-                #change the values on the lookup tables
-                #May be changing the values need to be done only once?
+            add_item_to_cache('pcie_ssd', disk_id, block_address, Cache_entry())
+            removed_item = remove_item_from_cache('pcie_ssd')
+            add_item_to_cache( 'ssd', removed_item['disk_id'], 
+                                removed_item['block_address'], removed_item['cache_contents'])
             removed_item = remove_item_from_cache('ssd', disk_id, block_address)
 
 
@@ -93,11 +74,6 @@ def sim_read(self, time_of_access, disk_id, block_address):
         output the ids needed to be evicted at each cache
         layer
         """
-        # Need a table for total size
-        # Need a table for currently occupied size
-        # Need a table for currenly allocated weight
-        # --- Initially assume static weights for each cache layer
-        # Consult the list to get the LRU's of an id's block_adress
         for ids, count in self.size_lookup.iteritems():
             if ids[1] == cache_layer:
                 if count >= self.weight[ids]:
