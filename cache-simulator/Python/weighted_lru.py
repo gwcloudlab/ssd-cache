@@ -2,7 +2,7 @@ from __future__ import division
 from cache_entry import Cache_entry
 from statsmodels import api as sm
 import os
-import pprint
+from pprint import pprint
 from cache import Cache
 from operator import itemgetter
 from collections import Counter, defaultdict, OrderedDict
@@ -203,4 +203,4 @@ class Weighted_lru(Cache):
     def print_stats(self):
         print "\nWeighted LRU:\n"
         print "Weight: ", self.weight, "\n"
-        pprint.pprint(dict(self.stats))
+        pprint(dict(self.stats))

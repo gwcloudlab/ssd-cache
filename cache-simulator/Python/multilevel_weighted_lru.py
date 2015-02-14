@@ -1,6 +1,7 @@
 from cache_entry import Cache_entry
-from cache import Cache
 from collections import defaultdict
+from cache import Cache
+from pprint import pprint
 
 class Multilevel_weighted_lru(Cache):
 
@@ -15,7 +16,7 @@ class Multilevel_weighted_lru(Cache):
 
     def sim_read(self, time_of_access, disk_id, block_address):
         """
-        This will handle the intial read of a block address
+        This will handle the initial read of a block address
         and tell us when to calculate reuse distances and 
         reuse intensities
         """
@@ -37,17 +38,20 @@ class Multilevel_weighted_lru(Cache):
                 removed_item = self.remove_item_from_cache('ssd', disk_id, block_address)
                 self.add_item_to_cache( 'pcie_ssd', removed_item['disk_id'], 
                                     removed_item['block_address'], removed_item['cache_contents'])
-                removed_item = self.remove_item_from_cache('pcie_ssd')
-                self.add_item_to_cache( 'ssd', removed_item['disk_id'], 
+                if len(self.pcie_ssd) > self.maxsize_pcie_ssd:
+                    removed_item = self.remove_item_from_cache('pcie_ssd')
+                    self.add_item_to_cache( 'ssd', removed_item['disk_id'], 
                                     removed_item['block_address'], removed_item['cache_contents'])
         except KeyError:
             self.stats[disk_id, 'miss'] += 1
             cache_layer = 'pcie_ssd'
             self.add_item_to_cache('pcie_ssd', disk_id, block_address, Cache_entry())
-            removed_item = self.remove_item_from_cache('pcie_ssd')
-            self.add_item_to_cache( 'ssd', removed_item['disk_id'], 
+            if len(self.pcie_ssd) > self.maxsize_pcie_ssd:
+                removed_item = self.remove_item_from_cache('pcie_ssd')
+                self.add_item_to_cache( 'ssd', removed_item['disk_id'], 
                                 removed_item['block_address'], removed_item['cache_contents'])
-            removed_item = self.remove_item_from_cache('ssd', disk_id, block_address)
+                if len(self.ssd) > self.maxsize_ssd:
+                    removed_item = self.remove_item_from_cache('ssd', disk_id, block_address)
 
     def add_item_to_cache(self, cache_layer, disk_id, block_address, cache_contents):
         if cache_layer == 'pcie_ssd':
@@ -77,6 +81,10 @@ class Multilevel_weighted_lru(Cache):
         for ids, count in self.size_lookup.iteritems():
             if ids[1] == cache_layer:
                 if count >= self.weight[ids]:
-                    return ids
-        return 1
+                    return ids[0]
         # return rand.randint(self.no_of_vms) # to evict a random VM
+
+    def print_stats(self):
+        print "\nWeighted LRU:\n"
+        print "Weight: ", self.weight, "\n"
+        pprint.pprint(dict(self.stats))
