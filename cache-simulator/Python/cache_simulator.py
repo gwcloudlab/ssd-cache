@@ -11,6 +11,7 @@ from random_lru import Random_lru
 from static_lru import Static_lru
 from weighted_lru import Weighted_lru
 from multilevel_global_lru import Multilevel_global_lru
+from multilevel_weighted_lru import Multilevel_weighted_lru
 from timeit import Timer
 # import pdb
 
@@ -73,8 +74,8 @@ def main():
     no_of_vms += 1 # To account for index starting from 0
     print "Total no. of vms: ", no_of_vms
     # algorithms = [Global_lru, Static_lru, Weighted_lru]
-    # algorithms = [Multilevel_global_lru]
-    algorithms = [Multilevel_global_lru, Global_lru]
+    # algorithms = [Multilevel_global_lru, Global_lru]
+    algorithms = [Multilevel_weighted_lru]
     for algorithm in algorithms:
         world = algorithm(no_of_vms)
         t = Timer(lambda: run(world, filename, num_lines, no_of_vms))
