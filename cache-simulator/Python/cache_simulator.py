@@ -6,11 +6,11 @@ Main Function for cache for class
 import os
 import csv
 import math
-from global_lru import Global_lru
-from random_lru import Random_lru
-from static_lru import Static_lru
-from weighted_lru import Weighted_lru
-from multilevel_global_lru import Multilevel_global_lru
+#from global_lru import Global_lru
+#from random_lru import Random_lru
+#from static_lru import Static_lru
+#from weighted_lru import Weighted_lru
+#from multilevel_global_lru import Multilevel_global_lru
 from multilevel_weighted_lru import Multilevel_weighted_lru
 from timeit import Timer
 # import pdb
