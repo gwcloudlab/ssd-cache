@@ -21,11 +21,21 @@ class Multilevel_weighted_lru(Cache):
         reuse intensities
         """
         self.total_accesses[disk_id] += 1
-        #self.unique_blocks[disk_id].add(str(block_address))
+        self.unique_blocks[disk_id].add(str(block_address))
         self.handle_hit_miss_evict(disk_id, block_address)
-        #self.calculate_reuse_distance(UUID)
-        #if time_of_access > self.timeout:
-            #pass
+        #self.calculate_reuse_distance(disk_id, block_address)
+        if time_of_access > self.timeout:
+            self.timeout = time_of_access + self.time_interval
+            self.calculate_reuse_intensity()
+
+    def calculate_reuse_intensity(self):
+        for disk in xrange(self.no_of_vms):
+            unique_element_count = len(self.unique_block[disk])
+            if unique_element_count == 0:
+                self.ri[disk] = 0
+            else:
+                self.ri[disk] = (self.total_accesses[disk] / 
+                                (unique_element_count) * self.time_interval)
 
     def handle_hit_miss_evict(self, disk_id, block_address):
         try:
