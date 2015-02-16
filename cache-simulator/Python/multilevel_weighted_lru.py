@@ -1,7 +1,10 @@
 from cache_entry import Cache_entry
 from collections import defaultdict
+from collections import deque
+from hyperloglog import HyperLogLog
 from cache import Cache
 from pprint import pprint
+from time import time
 
 class Multilevel_weighted_lru(Cache):
 
@@ -9,10 +12,17 @@ class Multilevel_weighted_lru(Cache):
         Cache.__init__(self)
         self.no_of_vms = no_of_vms
         self.block_lookup = {}
-        self.rd_blocks = defaultdict(list)
+        self.time_interval = 500
+        self.timeout = 0
+        self.ri = defaultdict()
+        self.rd_blocks = defaultdict(deque)
         self.size_lookup = defaultdict(lambda: 0)
         self.total_accesses = defaultdict(lambda: 0)
         self.weight = defaultdict(lambda: 1000)
+        self.unique_blocks = defaultdict()
+        for x in xrange(self.no_of_vms):
+            hyperll = HyperLogLog(0.01)
+            self.unique_blocks[x] = hyperll
 
     def sim_read(self, time_of_access, disk_id, block_address):
         """
@@ -21,22 +31,31 @@ class Multilevel_weighted_lru(Cache):
         reuse intensities
         """
         self.total_accesses[disk_id] += 1
-        self.unique_blocks[disk_id].add(str(block_address))
+        #self.unique_blocks[disk_id].add(str(block_address))
         self.handle_hit_miss_evict(disk_id, block_address)
         #self.calculate_reuse_distance(disk_id, block_address)
         if time_of_access > self.timeout:
             self.timeout = time_of_access + self.time_interval
-            self.calculate_reuse_intensity()
+            #self.calculate_reuse_intensity()
+    def timing(f):
+        def wrap(*args):
+            time1 = time()
+            ret = f(*args)
+            time2 = time()
+            #print '%s function took %0.3f ms' % (f.func_name, (time2-time1)*1000.0)
+            return ret
+        return wrap
 
     def calculate_reuse_intensity(self):
         for disk in xrange(self.no_of_vms):
-            unique_element_count = len(self.unique_block[disk])
+            unique_element_count = len(self.unique_blocks[disk])
             if unique_element_count == 0:
                 self.ri[disk] = 0
             else:
                 self.ri[disk] = (self.total_accesses[disk] / 
                                 (unique_element_count) * self.time_interval)
-
+                pprint(dict(self.ri))
+    @timing
     def handle_hit_miss_evict(self, disk_id, block_address):
         try:
             cache_layer = self.block_lookup[(disk_id, block_address)]
@@ -62,7 +81,7 @@ class Multilevel_weighted_lru(Cache):
                                 removed_item['block_address'], removed_item['cache_contents'])
                 if len(self.ssd) > self.maxsize_ssd:
                     removed_item = self.remove_item_from_cache('ssd', disk_id, block_address)
-
+    @timing
     def add_item_to_cache(self, cache_layer, disk_id, block_address, cache_contents):
         if cache_layer == 'pcie_ssd':
             self.pcie_ssd[(disk_id, block_address)] = cache_contents
@@ -71,7 +90,7 @@ class Multilevel_weighted_lru(Cache):
         self.rd_blocks[(disk_id, cache_layer)].append(block_address)
         self.size_lookup[(disk_id, cache_layer)] += 1
         self.block_lookup[(disk_id, block_address)] = cache_layer
-
+    @timing
     def remove_item_from_cache(self, cache_layer, disk_id=None, block_address=None):
         if disk_id == None:
             disk_id = self.find_id_to_evict(cache_layer)
@@ -86,7 +105,7 @@ class Multilevel_weighted_lru(Cache):
         return { 'disk_id':disk_id, 
                  'block_address': block_address, 
                  'cache_contents': cache_contents }
-
+    @timing
     def find_id_to_evict(self, cache_layer):
         for ids, count in self.size_lookup.iteritems():
             if ids[1] == cache_layer:
@@ -97,4 +116,4 @@ class Multilevel_weighted_lru(Cache):
     def print_stats(self):
         print "\nWeighted LRU:\n"
         print "Weight: ", self.weight, "\n"
-        pprint.pprint(dict(self.stats))
+        pprint(dict(self.stats))
