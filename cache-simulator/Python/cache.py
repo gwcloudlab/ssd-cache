@@ -13,7 +13,9 @@ class Cache(object):
         self.ssd = {}
         self.pcie_ssd = {}
         # Baseline values - min cache for each VM
-        self.weight = defaultdict(lambda: 1000)
+        self.weight = defaultdict(lambda: 0)
+        self.weight_pcie_ssd = defaultdict(lambda: 0)
+        self.weight_ssd = defaultdict(lambda: 0)
         # self.maxsize = sum(self.weight.values()) + 100000
         self.maxsize = 100000
         self.maxsize_ssd = 100000
