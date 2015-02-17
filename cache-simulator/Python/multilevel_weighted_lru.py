@@ -102,9 +102,9 @@ class Multilevel_weighted_lru(Cache):
             del self.block_lookup[disk_id][block_address]
 
         if cache_layer == 'pcie_ssd':
-            cache_contents = self.pcie_ssd.pop(disk_id, block_address)
+            cache_contents = self.pcie_ssd.pop((disk_id, block_address)) #double parenthesis are imp.
         else:
-            cache_contents = self.ssd.pop(disk_id, block_address)
+            cache_contents = self.ssd.pop((disk_id, block_address))
 
         self.stats[disk_id, cache_layer , 'evicts'] += 1
         self.size_lookup[(disk_id, cache_layer)] -= 1
