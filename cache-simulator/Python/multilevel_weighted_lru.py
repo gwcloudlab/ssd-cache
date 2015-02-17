@@ -82,7 +82,7 @@ class Multilevel_weighted_lru(Cache):
                 self.add_item_to_cache( 'ssd', removed_item['disk_id'], 
                                 removed_item['block_address'], removed_item['cache_contents'])
                 if len(self.ssd) > self.maxsize_ssd:
-                    removed_item = self.remove_item_from_cache('ssd', disk_id, block_address)
+                    removed_item = self.remove_item_from_cache('ssd')
 
     #@timing
     def add_item_to_cache(self, cache_layer, disk_id, block_address, cache_contents):
