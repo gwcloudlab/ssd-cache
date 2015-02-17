@@ -1,3 +1,4 @@
+from __future__ import division
 from cache_entry import Cache_entry
 from collections import defaultdict
 from collections import OrderedDict
@@ -17,7 +18,7 @@ class Multilevel_weighted_lru(Cache):
         self.block_lookup = defaultdict(OrderedDict)
         self.size_lookup = defaultdict(lambda: 0)
         self.total_accesses = defaultdict(lambda: 0)
-        self.weight = defaultdict(lambda: 1000)
+        self.weight = defaultdict(lambda: 0)
         self.unique_blocks = defaultdict()
         for x in xrange(self.no_of_vms):
             hyperll = HyperLogLog(0.01)
@@ -30,12 +31,14 @@ class Multilevel_weighted_lru(Cache):
         reuse intensities
         """
         self.total_accesses[disk_id] += 1
-        #self.unique_blocks[disk_id].add(str(block_address))
+        self.unique_blocks[disk_id].add(str(block_address))
         self.handle_hit_miss_evict(disk_id, block_address)
         #self.calculate_reuse_distance(disk_id, block_address)
         if time_of_access > self.timeout:
             self.timeout = time_of_access + self.time_interval
-            #self.calculate_reuse_intensity()
+            self.calculate_reuse_intensity()
+            self.calculate_weight()
+
     def timing(f):
         def wrap(*args):
             time1 = time()
@@ -53,7 +56,7 @@ class Multilevel_weighted_lru(Cache):
             else:
                 self.ri[disk] = (self.total_accesses[disk] / 
                                 (unique_element_count) * self.time_interval)
-                pprint(dict(self.ri))
+
     @timing
     def handle_hit_miss_evict(self, disk_id, block_address):
         try:
@@ -103,19 +106,33 @@ class Multilevel_weighted_lru(Cache):
         else:
             cache_contents = self.ssd.pop(disk_id, block_address)
 
+        self.stats[disk_id, cache_layer , 'evicts'] += 1
         self.size_lookup[(disk_id, cache_layer)] -= 1
 
-        return { 'disk_id':disk_id, 
+        return { 'disk_id': disk_id, 
                  'block_address': block_address, 
                  'cache_contents': cache_contents }
 
     #@timing
     def find_id_to_evict(self, cache_layer):
-        for ids, count in self.size_lookup.iteritems():
-            if ids[1] == cache_layer:
-                if count >= self.weight[ids]:
-                    return ids[0]
+        for (disk_id, layer), count in self.size_lookup.iteritems():
+            if layer == cache_layer:
+                if count >= eval("self.weight_" + cache_layer)[disk_id]:
+                    return disk_id
         # return rand.randint(self.no_of_vms) # to evict a random VM
+
+    def calculate_weight(self):
+        self.priority = {k: v / sum(self.ri.values()) for k, v in self.ri.items()}
+        self.weight_ssd = {k: int(v * self.maxsize_ssd) for k, v in self.priority.items()}
+        self.weight_pcie_ssd = {k: int(v * self.maxsize_pcie_ssd) for k, v in self.priority.items()}
+        print "Priority: "
+        pprint (dict(self.priority))
+        print "Weight for pcie ssd: "
+        pprint (dict(self.weight_pcie_ssd))
+        print "Weight for ssd: "
+        pprint (dict(self.weight_ssd))
+        print "Actual size occupied: "
+        pprint (dict(self.size_lookup))
 
     def print_stats(self):
         print "\nMultilevel weighted LRU:\n"
