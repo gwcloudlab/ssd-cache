@@ -57,7 +57,7 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'pre-processed.csv'
+    filename = 'mix.csv'
 
     # calculate the number of lines and the
     # number of VMs in the input file.
@@ -73,6 +73,7 @@ def main():
 
     no_of_vms += 1 # To account for index starting from 0
     print "Total no. of vms: ", no_of_vms
+    print "Total no. of lines: ", num_lines
     # algorithms = [Global_lru, Static_lru, Weighted_lru]
     # algorithms = [Multilevel_global_lru, Global_lru]
     algorithms = [Multilevel_weighted_lru]

@@ -117,7 +117,7 @@ class Multilevel_weighted_lru(Cache):
     def find_id_to_evict(self, cache_layer):
         for (disk_id, layer), count in self.size_lookup.iteritems():
             if layer == cache_layer:
-                if count >= eval("self.weight_" + cache_layer)[disk_id]:
+                if count > eval("self.weight_" + cache_layer)[disk_id]:
                     return disk_id
         # return rand.randint(self.no_of_vms) # to evict a random VM
 

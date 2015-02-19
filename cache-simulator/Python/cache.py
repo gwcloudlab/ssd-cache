@@ -18,8 +18,8 @@ class Cache(object):
         self.weight_ssd = defaultdict(lambda: 0)
         # self.maxsize = sum(self.weight.values()) + 100000
         self.maxsize = 100000
-        self.maxsize_ssd = 100000
-        self.maxsize_pcie_ssd = 10000
+        self.maxsize_ssd = 5
+        self.maxsize_pcie_ssd = 5
         self.stats = defaultdict(lambda: 0)
 
     def delete(self):
