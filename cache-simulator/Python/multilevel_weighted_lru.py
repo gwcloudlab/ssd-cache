@@ -3,8 +3,8 @@ from cache_entry import Cache_entry
 from collections import defaultdict
 from collections import OrderedDict
 from hyperloglog import HyperLogLog
-from cache import Cache
 from pprint import pprint
+from cache import Cache
 from time import time
 
 class Multilevel_weighted_lru(Cache):
@@ -64,7 +64,7 @@ class Multilevel_weighted_lru(Cache):
                 return layer
         return None
 
-    @timing
+    #@timing
     def handle_hit_miss_evict(self, disk_id, block_address):
         cache_layer = self.item_in_cache(disk_id, block_address)
         if cache_layer is not None:
@@ -100,7 +100,7 @@ class Multilevel_weighted_lru(Cache):
         self.size_lookup[(disk_id, cache_layer)] += 1
         self.block_lookup[disk_id][cache_layer][block_address] = self.rd
 
-    @timing
+    #@timing
     def remove_item_from_cache(self, cache_layer, disk_id=None, block_address=None):
         if disk_id == None:
             disk_id = self.find_id_to_evict(cache_layer)
@@ -127,7 +127,6 @@ class Multilevel_weighted_lru(Cache):
             if layer == cache_layer:
                 if count > eval("self.weight_" + cache_layer)[disk_id]:
                     return disk_id
-        # return rand.randint(self.no_of_vms) # to evict a random VM
 
     def calculate_weight(self):
         self.priority = {k: v / sum(self.ri.values()) for k, v in self.ri.items()}
