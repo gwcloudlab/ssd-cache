@@ -108,7 +108,7 @@ class Multilevel_weighted_lru(Cache):
         else:
             del self.block_lookup[disk_id][cache_layer][block_address]
 
-        del self.block_lookup[disk_id][cache_layer][block_address]
+        #del self.block_lookup[disk_id][cache_layer][block_address]
         if cache_layer == 'pcie_ssd':
             cache_contents = self.pcie_ssd.pop((disk_id, block_address)) #double parenthesis are imp.
         else:
