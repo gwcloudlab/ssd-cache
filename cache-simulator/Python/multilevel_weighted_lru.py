@@ -15,7 +15,8 @@ class Multilevel_weighted_lru(Cache):
         self.time_interval = 500
         self.timeout = 0
         self.ri = defaultdict()
-        self.block_lookup = defaultdict(OrderedDict)
+        self.rd = 0 # In future this should be replaced with original rd
+        self.block_lookup = defaultdict(lambda: defaultdict(OrderedDict))
         self.size_lookup = defaultdict(lambda: 0)
         self.total_accesses = defaultdict(lambda: 0)
         self.weight = defaultdict(lambda: 0)
@@ -57,14 +58,20 @@ class Multilevel_weighted_lru(Cache):
                 self.ri[disk] = (self.total_accesses[disk] / 
                                 (unique_element_count) * self.time_interval)
 
+    def item_in_cache(self, disk_id, block_address):
+        for layer in self.block_lookup[disk_id].keys():
+            if block_address in self.block_lookup[disk_id][layer]:
+                return layer
+        return None
+
     @timing
     def handle_hit_miss_evict(self, disk_id, block_address):
-        try:
-            cache_layer = self.block_lookup[disk_id][block_address]
+        cache_layer = self.item_in_cache(disk_id, block_address)
+        if cache_layer is not None:
             self.stats[disk_id, cache_layer, 'hits'] += 1
             if cache_layer == 'pcie_ssd':
-                cache_contents = self.block_lookup[disk_id].pop(block_address)
-                self.block_lookup[disk_id][block_address] = cache_contents
+                cache_contents = self.block_lookup[disk_id][cache_layer].pop(block_address)
+                self.block_lookup[disk_id][cache_layer][block_address] = cache_contents
             else:
                 removed_item = self.remove_item_from_cache('ssd', disk_id, block_address)
                 self.add_item_to_cache( 'pcie_ssd', removed_item['disk_id'], 
@@ -73,7 +80,7 @@ class Multilevel_weighted_lru(Cache):
                     removed_item = self.remove_item_from_cache('pcie_ssd')
                     self.add_item_to_cache( 'ssd', removed_item['disk_id'], 
                                     removed_item['block_address'], removed_item['cache_contents'])
-        except KeyError:
+        else:
             self.stats[disk_id, 'miss'] += 1
             cache_layer = 'pcie_ssd'
             self.add_item_to_cache('pcie_ssd', disk_id, block_address, Cache_entry())
@@ -91,16 +98,17 @@ class Multilevel_weighted_lru(Cache):
         else:
             self.ssd[(disk_id, block_address)] = cache_contents
         self.size_lookup[(disk_id, cache_layer)] += 1
-        self.block_lookup[disk_id][block_address] = cache_layer
+        self.block_lookup[disk_id][cache_layer][block_address] = self.rd
 
-    #@timing
+    @timing
     def remove_item_from_cache(self, cache_layer, disk_id=None, block_address=None):
         if disk_id == None:
             disk_id = self.find_id_to_evict(cache_layer)
-            block_address, cache_layer = self.block_lookup[disk_id].popitem(last=False)
+            block_address, rd = self.block_lookup[disk_id][cache_layer].popitem(last=False)
         else:
-            del self.block_lookup[disk_id][block_address]
+            del self.block_lookup[disk_id][cache_layer][block_address]
 
+        del self.block_lookup[disk_id][cache_layer][block_address]
         if cache_layer == 'pcie_ssd':
             cache_contents = self.pcie_ssd.pop((disk_id, block_address)) #double parenthesis are imp.
         else:
