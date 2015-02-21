@@ -18,7 +18,7 @@ from timeit import Timer
 
 def run(world, filename, num_lines, no_of_vms):
     try:
-        with open(os.path.join('MSR', filename), "rb") as trace:
+        with open(os.path.join('MSR', filename), 'rb') as trace:
             one_percent_complete = round(num_lines / 100)
             lines_read = 0
             for item in csv.reader(trace, delimiter=','):
@@ -31,7 +31,7 @@ def run(world, filename, num_lines, no_of_vms):
                 read_size = int(item[5])
                 # response_time = int(item[6])
                 blocks = int(math.ceil(read_size / 4096.0))
-                if operation == "Read":
+                if operation == 'Read':
                     for block in xrange(blocks):
                         if block > 0:
                             block_address += 1
@@ -43,10 +43,8 @@ def run(world, filename, num_lines, no_of_vms):
             # pdb.set_trace()
         world.print_stats()
         return True
-    except IOError as error:
-        print('ERROR: Error loading trace: ' +
-              error.filename + os.linesep +
-              " with error: " + error.message + os.linesep)
+    except IOError:
+        print("ERROR: Error loading trace")
         return False
 
 
@@ -80,7 +78,7 @@ def main():
     for algorithm in algorithms:
         world = algorithm(no_of_vms)
         t = Timer(lambda: run(world, filename, num_lines, no_of_vms))
-        print 'It took %s seconds to run' % (t.timeit(number=1))
+        print "It took %s seconds to run" % (t.timeit(number=1))
 
 if __name__ == '__main__':
     main()
