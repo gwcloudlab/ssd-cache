@@ -55,7 +55,7 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'mix.csv'
+    filename = raw_input("Enter a filename to process: ")
 
     # calculate the number of lines and the
     # number of VMs in the input file.
