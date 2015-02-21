@@ -6,6 +6,7 @@ from hyperloglog import HyperLogLog
 from pprint import pprint
 from cache import Cache
 from time import time
+import sys
 
 class Multilevel_weighted_lru(Cache):
 
@@ -127,6 +128,7 @@ class Multilevel_weighted_lru(Cache):
             if layer == cache_layer:
                 if count > eval("self.weight_" + cache_layer)[disk_id]:
                     return disk_id
+        raise ValueError("There is no ID found to be evicted")
 
     def calculate_weight(self):
         self.priority = {k: v / sum(self.ri.values()) for k, v in self.ri.items()}
