@@ -1,3 +1,13 @@
+class Rd_cdf():
+    def __init__(self, rd):
+        """
+        self.rd is of the form {disk_id : [rd array]}
+        """
+        self.rd = rd
+        # initialize min and max rd values. This is the x-axis values
+        self.min_rd_value = 1.0
+        self.no_of_cdf_x_values = 50
+    
     def construct_rd_cdf(self):
         """
         The estimated hit ratio for each disk is calculated from it's RD by
@@ -7,34 +17,24 @@
         sm.distributions' ECDF library function.
         """
 
-        # calculate the normalized rd array
-        rd_array = {}
-        cdf_x = {}  # The x axis of the cdf
-        cdf_y = {}  # The y axis of the cdf. i.e. the hit ratio
-        # initialize min and max rd values. This is the x-axis values
-        min_rd_value = 1.0
-        no_of_cdf_x_values = 50
         with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
             # Initialize all the header info for the out_file
             out_file.write(" " + str(len(self.rd)) + " " + str(no_of_cdf_x_values) + " " + str(1) + "\n ")
             out_file.write(str(self.maxsize) + "\n")
             # Set a flag to only run sa_anneal if cdf has data
             cdf_not_empty = False
-            for disk, block in self.rd.iteritems():
-                if sum(block.itervalues()) == 0:
-                    max_rd_value = 1.0
+            for disk, rd_values in self.rd.iteritems():
+                cdf_x = {}  # The x axis of the cdf
+                cdf_y = {}  # The y axis of the cdf. i.e. the hit ratio
+                if rd_values[-1] == 0: # If the last value of a sorted list is 0 then the sum is 0
+                    max_rd_value = 0.0
                 else:
                     cdf_not_empty = True
                     max_rd_value = self.maxsize
-                rd_array[disk] = sorted(block.itervalues())
-                ecdf = sm.distributions.ECDF(rd_array[disk])
-                cdf_x[disk] = linspace(min_rd_value, max_rd_value, no_of_cdf_x_values)# 50 xtics
-                cdf_y[disk] = ecdf(cdf_x[disk])
-                cdf_y[disk] *= 100 # CPP program doesn't work well with float
-
-                if not self.ri_only_priority:
-                    # Add ri values to rd
-                    cdf_y[disk] += 10000 * self.ri[disk] # *10K to compensate for 'cdf_y[disk] *= 100'
+                ecdf = sm.distributions.ECDF(rd_values)
+                cdf_x = linspace(self.min_rd_value, max_rd_value, self.no_of_cdf_x_values)# 50 xtics
+                cdf_y = ecdf(cdf_x[disk])
+                cdf_y *= 100 # CPP program doesn't work well with float
 
                 out_file.write(" " + str(disk + 1) + "\n")
                 for x_axis, y_axis in zip(cdf_x[disk], cdf_y[disk]):
