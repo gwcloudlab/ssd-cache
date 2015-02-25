@@ -1,5 +1,6 @@
 from collections import defaultdict
 from collections import OrderedDict
+from sortedcontainers import SortedList
 
 
 class Naive_rd():
@@ -23,8 +24,8 @@ class Naive_rd():
         self.rd[disk_id][block_address] = rd_value
 
     def get_rd_values(self):
-        rd_array = defaultdict(list)
+        rd_array = defaultdict(SortedList)
         for disk in self.rd.iterkeys():
             for rd_values in self.rd[disk].itervalues():
-                rd_array[disk].append(rd_values)
+                rd_array[disk].add(rd_values)
         return rd_array
