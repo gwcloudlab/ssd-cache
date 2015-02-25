@@ -24,11 +24,12 @@ def run(algorithm, filename):
             disk_id = int(item[2])
             block_address = int(item[4])
             algorithm.calculate_rd(disk_id, block_address)
+    print algorithm.get_rd_values()
 
 
 @timing
 def main():
-    filename = 'MSR/usr_0_only_reads.csv'
+    filename = 'MSR/tiny_usr.csv'
     # rd = defaultdict(SortedList)
     # for x in xrange(4):
     #     for y in xrange(50):
