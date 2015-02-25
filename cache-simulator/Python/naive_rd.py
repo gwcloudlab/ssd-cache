@@ -27,5 +27,4 @@ class Naive_rd():
         for disk in self.rd.iterkeys():
             for rd_values in self.rd[disk].itervalues():
                 rd_array[disk].append(rd_values)
-            print len(rd_array[disk])
         return rd_array
