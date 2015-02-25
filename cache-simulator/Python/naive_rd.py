@@ -14,7 +14,7 @@ class Naive_rd():
             self.rd_list[disk_id].pop(indx)
             self.rd_list[disk_id].append(block_address)
             no_of_entries = self.rd_size_lookup[disk_id]
-            rd_value = no_of_entries - indx + 1
+            rd_value = no_of_entries - indx
         else:
             rd_value = -1
             self.rd_list[disk_id].append(block_address)
