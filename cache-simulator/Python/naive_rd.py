@@ -21,3 +21,11 @@ class Naive_rd():
             self.rd_size_lookup[disk_id] += 1
 
         self.rd[disk_id][block_address] = rd_value
+
+    def get_rd_values(self):
+        rd_array = defaultdict(list)
+        for disk in self.rd.iterkeys():
+            for rd_values in self.rd[disk].itervalues():
+                rd_array[disk].append(rd_values)
+            print len(rd_array[disk])
+        return rd_array
