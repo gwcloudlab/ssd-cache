@@ -4,6 +4,7 @@ from collections import defaultdict
 from collections import OrderedDict
 from hyperloglog import HyperLogLog
 from naive_rd import Naive_rd
+from rd_cdf import Rd_cdf
 from pprint import pprint
 from cache import Cache
 from time import time
@@ -19,7 +20,7 @@ class Multilevel_weighted_lru(Cache):
         self.timeout = 0
         self.ri = defaultdict()
         self.rd = 0  # In future this should be replaced with original rd
-        self.rd_values = {}
+        self.rd_cdf_values = []
         self.block_lookup = defaultdict(lambda: defaultdict(OrderedDict))
         self.size_lookup = defaultdict(lambda: 0)
         self.total_accesses = defaultdict(lambda: 0)
@@ -43,7 +44,11 @@ class Multilevel_weighted_lru(Cache):
             self.timeout = time_of_access + self.time_interval
             self.calculate_reuse_intensity()
             self.calculate_weight()
-            self.rd_values = self.reuse_distance.get_rd_values()
+            rd_values = self.reuse_distance.get_rd_values()
+            # For cdf calculation we have to create a new object every single time
+            rd_cdf = Rd_cdf(rd_values)
+            self.rd_cdf_values = rd_cdf.construct_rd_cdf()
+            print self.rd_cdf_values
 
     def timing(f):
         def wrap(*args):
