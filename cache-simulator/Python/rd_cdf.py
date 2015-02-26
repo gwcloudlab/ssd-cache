@@ -11,7 +11,7 @@ class Rd_cdf():
         Use a sorted container http://grantjenks.com/docs/sortedcontainers/
         self.rd is of the form {disk_id : [rd array]}
         """
-        self.maxsize = 100000
+        self.maxsize = 100
         self.rd = rd
         # initialize min and max rd values. This is the x-axis values
         self.min_rd_value = 1.0
@@ -36,6 +36,8 @@ class Rd_cdf():
         """
 
         with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
+            cdf_x = {}  # The x axis of the cdf
+            cdf_y = {}  # The y axis of the cdf. i.e. the hit ratio
             # Initialize all the header info for the out_file
             out_file.write(" " + str(len(self.rd)) + " " +
                            str(self.no_of_cdf_x_values) + " " + str(1) + "\n ")
@@ -43,21 +45,19 @@ class Rd_cdf():
             # Set a flag to only run sa_anneal if cdf has data
             cdf_not_empty = False
             for disk, rd_values in self.rd.iteritems():
-                cdf_x = {}  # The x axis of the cdf
-                cdf_y = {}  # The y axis of the cdf. i.e. the hit ratio
                 if rd_values[-1] == 0:  # If last value is 0 then sum is 0
                     max_rd_value = 0.0
                 else:
                     cdf_not_empty = True
                     max_rd_value = self.maxsize
                 ecdf = sm.distributions.ECDF(rd_values)
-                cdf_x = linspace(self.min_rd_value,
-                                 max_rd_value, self.no_of_cdf_x_values)
-                cdf_y = ecdf(cdf_x)
-                cdf_y *= 100  # CPP program doesn't work well with float
+                cdf_x[disk] = linspace(self.min_rd_value,
+                                       max_rd_value, self.no_of_cdf_x_values)
+                cdf_y[disk] = ecdf(cdf_x[disk])
+                cdf_y[disk] *= 100  # CPP program doesn't work well with float
 
                 out_file.write(" " + str(disk + 1) + "\n")
-                for x_axis, y_axis in zip(cdf_x, cdf_y):
+                for x_axis, y_axis in zip(cdf_x[disk], cdf_y[disk]):
                     out_file.write(" " + str('%.2f' % y_axis) +
                                    " " + str('%.2f' % x_axis) + "\n")
 
@@ -68,4 +68,7 @@ class Rd_cdf():
             sa_solution = [line.strip()
                            for line in open("sa_solution.txt", 'r')]
             sa_solution = map(int, sa_solution)
-            print sa_solution
+            cdf_values = []
+            for disk in cdf_x.keys():
+                cdf_values.append(cdf_x[disk][sa_solution[disk - 1]])
+            return cdf_values
