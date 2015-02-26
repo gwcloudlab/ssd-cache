@@ -6,6 +6,7 @@
 import csv
 from time import time
 from naive_rd import Naive_rd
+from rd_cdf import Rd_cdf
 
 
 def timing(f):
@@ -24,7 +25,8 @@ def run(algorithm, filename):
             disk_id = int(item[2])
             block_address = int(item[4])
             algorithm.calculate_rd(disk_id, block_address)
-    print algorithm.get_rd_values()
+    test_cdf = Rd_cdf(algorithm.get_rd_values())
+    test_cdf.construct_rd_cdf()
 
 
 @timing
