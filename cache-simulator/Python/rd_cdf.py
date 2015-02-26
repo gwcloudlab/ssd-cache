@@ -69,6 +69,10 @@ class Rd_cdf():
                            for line in open("sa_solution.txt", 'r')]
             sa_solution = map(int, sa_solution)
             cdf_values = []
-            for disk in cdf_x.keys():
-                cdf_values.append(cdf_x[disk][sa_solution[disk - 1]])
-            return cdf_values
+            try:
+                for disk, rd in zip(cdf_x.keys(), sa_solution):
+                    cdf_values.append(cdf_x[disk][rd])
+                return cdf_values
+            except IndexError:
+                print cdf_x
+                print sa_solution
