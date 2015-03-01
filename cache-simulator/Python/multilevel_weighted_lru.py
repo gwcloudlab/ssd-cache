@@ -3,20 +3,24 @@ from cache_entry import Cache_entry
 from collections import defaultdict
 from collections import OrderedDict
 from hyperloglog import HyperLogLog
+from naive_rd import Naive_rd
+from rd_cdf import Rd_cdf
 from pprint import pprint
 from cache import Cache
 from time import time
-import sys
+
 
 class Multilevel_weighted_lru(Cache):
 
     def __init__(self, no_of_vms):
         Cache.__init__(self)
+        self.reuse_distance = Naive_rd()
         self.no_of_vms = no_of_vms
         self.time_interval = 500
         self.timeout = 0
         self.ri = defaultdict()
-        self.rd = 0 # In future this should be replaced with original rd
+        self.rd = 0  # In future this should be replaced with original rd
+        self.rd_cdf_values = []
         self.block_lookup = defaultdict(lambda: defaultdict(OrderedDict))
         self.size_lookup = defaultdict(lambda: 0)
         self.total_accesses = defaultdict(lambda: 0)
@@ -29,24 +33,28 @@ class Multilevel_weighted_lru(Cache):
     def sim_read(self, time_of_access, disk_id, block_address):
         """
         This will handle the initial read of a block address
-        and tell us when to calculate reuse distances and 
+        and tell us when to calculate reuse distances and
         reuse intensities
         """
         self.total_accesses[disk_id] += 1
         self.unique_blocks[disk_id].add(str(block_address))
         self.handle_hit_miss_evict(disk_id, block_address)
-        #self.calculate_reuse_distance(disk_id, block_address)
+        self.reuse_distance.calculate_rd(disk_id, block_address)
         if time_of_access > self.timeout:
             self.timeout = time_of_access + self.time_interval
             self.calculate_reuse_intensity()
             self.calculate_weight()
+            rd_values = self.reuse_distance.get_rd_values()
+            # For cdf calculation we have to create a new object every single time
+            rd_cdf = Rd_cdf(rd_values)
+            self.rd_cdf_values = rd_cdf.construct_rd_cdf()
 
     def timing(f):
         def wrap(*args):
             time1 = time()
             ret = f(*args)
             time2 = time()
-            #print '%s function took %0.3f ms' % (f.func_name, (time2-time1)*1000.0)
+            # print '%s took %0.3f ms' % (f.func_name, (time2-time1)*1000.0)
             return ret
         return wrap
 
@@ -56,8 +64,8 @@ class Multilevel_weighted_lru(Cache):
             if unique_element_count == 0:
                 self.ri[disk] = 0
             else:
-                self.ri[disk] = (self.total_accesses[disk] / 
-                                (unique_element_count) * self.time_interval)
+                self.ri[disk] = (self.total_accesses[disk] /
+                                 (unique_element_count) * self.time_interval)
 
     def item_in_cache(self, disk_id, block_address):
         for layer in self.block_lookup[disk_id].keys():
@@ -65,7 +73,7 @@ class Multilevel_weighted_lru(Cache):
                 return layer
         return None
 
-    #@timing
+    # @timing
     def handle_hit_miss_evict(self, disk_id, block_address):
         cache_layer = self.item_in_cache(disk_id, block_address)
         if cache_layer is not None:
@@ -134,14 +142,14 @@ class Multilevel_weighted_lru(Cache):
         self.priority = {k: v / sum(self.ri.values()) for k, v in self.ri.items()}
         self.weight_ssd = {k: int(v * self.maxsize_ssd) for k, v in self.priority.items()}
         self.weight_pcie_ssd = {k: int(v * self.maxsize_pcie_ssd) for k, v in self.priority.items()}
-        print "Priority: "
+        print "Priority: \t"
         pprint (dict(self.priority))
-        print "Weight for pcie ssd: "
-        pprint (dict(self.weight_pcie_ssd))
-        print "Weight for ssd: "
-        pprint (dict(self.weight_ssd))
-        print "Actual size occupied: "
-        pprint (dict(self.size_lookup))
+        #print "Weight for pcie ssd: "
+        #pprint (dict(self.weight_pcie_ssd))
+        #print "Weight for ssd: "
+        #pprint (dict(self.weight_ssd))
+        #print "Actual size occupied: "
+        #pprint (dict(self.size_lookup))
 
     def print_stats(self):
         print "\nMultilevel weighted LRU:\n"
