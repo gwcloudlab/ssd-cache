@@ -13,15 +13,21 @@ from timeit import Timer
 import random
 import csv
 from counter_stack import Counter_stack
+from rd_stack import Rd_stack
 
 def main():
-    filename = 'counter-stack-trace.csv'
-    #filename = 'pre-processed_first_1000.csv'
+    #filename = 'counter-stack-trace.csv'
+    #filename = 'pre-processed.csv'
+    filename = 'pre-processed_first_1000.csv'
     no_of_vms = 4
-    rd = defaultdict(defaultdict)  # Reuse distance
+    num_lines = 3791
     counterStack = Counter_stack(no_of_vms)
+    rdStack = Rd_stack(no_of_vms)
     try:
-        with open(os.path.join('MSR', filename), "rb") as trace:
+	time_begin=time.time()
+	print "begin time: "+str(time_begin)	
+	with open(os.path.join('MSR', filename), "rb") as trace:
+	    one_percent_complete = round(num_lines / 1)
             lines_read = 0
             for item in csv.reader(trace, delimiter=','):
                 lines_read += 1
@@ -33,19 +39,26 @@ def main():
                 read_size = int(item[5])
                 # response_time = int(item[6])
                 if operation == "Read":
-		    #rd=counterStack.counter_stack_naive(disk_id, block_address,rd)
-		    rd=counterStack.counter_stack_downsampling(disk_id, block_address,rd)
-		    #print "lines_read: "+str(lines_read)
-            print_reuse_distance(disk_id, rd)
-            # pdb.set_trace()
+		    # print "lines_read: "+str(lines_read)+" block_address: "+str(block_address)
+	    	    # reuseDistance=counterStack.counter_stack_naive(disk_id, block_address)
+	    	    reuseDistance=counterStack.counter_stack_simple(disk_id, block_address)
+		    #reuseDistance=rdStack.calculate_reuse_distance(disk_id, block_address)
+        	#print_reuse_distance(disk_id, reuseDistance)
+		if(lines_read % one_percent_complete == 0):
+                    print 100 * lines_read / num_lines, " percent complete"
+
+	time_end=time.time()
+	print "end time: "+str(time_end)
+	print "Total time: "+str(time_end-time_begin)
     except IOError as error:
         print('ERROR: Error loading trace: ' +
               error.filename + os.linesep +
               " with error: " + error.message + os.linesep)
 
-def print_reuse_distance(disk_id, rd):
+
+def print_reuse_distance(disk_id, reuseDistance):
     print "\nrd_begin"
-    print rd
+    print reuseDistance
     print "rd_end\n"
 
 if __name__ == '__main__':
