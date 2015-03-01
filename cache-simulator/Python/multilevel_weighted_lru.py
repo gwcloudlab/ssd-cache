@@ -48,7 +48,6 @@ class Multilevel_weighted_lru(Cache):
             # For cdf calculation we have to create a new object every single time
             rd_cdf = Rd_cdf(rd_values)
             self.rd_cdf_values = rd_cdf.construct_rd_cdf()
-            print self.rd_cdf_values
 
     def timing(f):
         def wrap(*args):

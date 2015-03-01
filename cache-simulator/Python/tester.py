@@ -25,13 +25,15 @@ def run(algorithm, filename):
             disk_id = int(item[2])
             block_address = int(item[4])
             algorithm.calculate_rd(disk_id, block_address)
-    test_cdf = Rd_cdf(algorithm.get_rd_values())
-    test_cdf.construct_rd_cdf()
+    rd_values = algorithm.get_rd_values()
+    print rd_values
+    # test_cdf = Rd_cdf(rd_values)
+    # print test_cdf.construct_rd_cdf()
 
 
 @timing
 def main():
-    filename = 'MSR/tiny_usr.csv'
+    filename = 'MSR/wdev.csv'
     # rd = defaultdict(SortedList)
     # for x in xrange(4):
     #     for y in xrange(50):

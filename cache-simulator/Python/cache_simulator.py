@@ -66,7 +66,7 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'MSR/usr_0_only_reads.csv'
+    filename = 'MSR/src1_only_reads.csv'
     #filename = raw_input("Enter a filename to process: ")
     num_lines, no_of_vms = pre_process_file(filename)
     print "Total no. of vms: ", no_of_vms
