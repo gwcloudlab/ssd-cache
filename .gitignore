@@ -1,6 +1,7 @@
 *.dat
 *.pyc
 *~
+*.backup
 MSR/
 .idea/
 .DS_Store
