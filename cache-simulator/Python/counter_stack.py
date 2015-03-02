@@ -18,15 +18,13 @@ from sortedcontainers import SortedList
 class Counter_stack(object):
 
     def __init__(self):
-        self.counter_interval = 3  #sample interval for downsampling
+        self.counter_interval = 1000  #sample interval for downsampling
         self.counter_step = 0  # current number for Counter Stack
         self.blocks_trace = defaultdict(lambda: []) # block trace list
 	self.counterStack_list = defaultdict(lambda: []) # current counter stack list
 	self.counterStack_prelist = defaultdict(lambda: []) # previous counter stack list
 	self.reuseDistance_list = defaultdict(lambda: []) # Reuse distance list
 	self.rd_index = defaultdict(defaultdict)  # Reuse distance index dictionary
-
-    def calculate_rd(self, disk_id, block_address):
 
     def counter_stack_naive(self, disk_id, block_address):
         """
@@ -83,8 +81,7 @@ class Counter_stack(object):
 	self.save_counterStack_stream(file_name, disk_id)
 	return self.reuseDistance_list
 
-    # def counter_stack_simple(self, disk_id, block_address):
-    def calculate_rd(self, disk_id, block_address):
+    def counter_stack_simple(self, disk_id, block_address):
         """
         rd[disk] = ordereddict{ block_address : RD index }
         """
@@ -136,10 +133,10 @@ class Counter_stack(object):
 	    counterStack_stream.writelines(counterStack_strlist)
 	    counterStack_stream.write("\n")
 
-    def counter_stack_downsampling(self, disk_id, block_address):
+    def calculate_rd(self, disk_id, block_address):
         self.counter_step += 1
         if self.counter_step % self.counter_interval ==0:
-	   return self.counter_stack_naive(disk_id, block_address)
+	   return self.counter_stack_simple(disk_id, block_address)
 	return self.reuseDistance_list
 
     def get_rd_values(self):
