@@ -13,10 +13,11 @@ from timeit import Timer
 import random
 import csv
 import copy
+from sortedcontainers import SortedList
 
 class Counter_stack(object):
 
-    def __init__(self, no_of_disks):
+    def __init__(self):
         self.counter_interval = 3  #sample interval for downsampling
         self.counter_step = 0  # current number for Counter Stack
         self.blocks_trace = defaultdict(lambda: []) # block trace list
@@ -24,6 +25,9 @@ class Counter_stack(object):
 	self.counterStack_prelist = defaultdict(lambda: []) # previous counter stack list
 	self.reuseDistance_list = defaultdict(lambda: []) # Reuse distance list
 	self.rd_index = defaultdict(defaultdict)  # Reuse distance index dictionary
+
+    def calculate_rd(self, disk_id, block_address):
+
     def counter_stack_naive(self, disk_id, block_address):
         """
         rd_index[disk] = ordereddict{ block_address : RD index }
@@ -79,13 +83,12 @@ class Counter_stack(object):
 	self.save_counterStack_stream(file_name, disk_id)
 	return self.reuseDistance_list
 
-    def counter_stack_simple(self, disk_id, block_address):
+    # def counter_stack_simple(self, disk_id, block_address):
+    def calculate_rd(self, disk_id, block_address):
         """
         rd[disk] = ordereddict{ block_address : RD index }
         """
 	reuse_distance= -1
-	deltaX_list = [1]
-	deltaY_list = [0]
 	self.counterStack_prelist=copy.copy(self.counterStack_list[disk_id])
 	self.counterStack_list[disk_id]=[]
 	hyperll = hyperloglog.HyperLogLog(0.01)
@@ -101,13 +104,13 @@ class Counter_stack(object):
 	for x in range(0,len(self.blocks_trace[disk_id]))[::-1]:
 	    unique_blocks.add(str(self.blocks_trace[disk_id][x]))
 	    self.counterStack_list[disk_id].append(len(unique_blocks))
+	# print self.counterStack_list[disk_id]
 
 	# compute the delta X	deltaXij=Ci,j - Ci,j-1   
 	for c in range(0,len(self.counterStack_prelist)):
 	    deltaX=self.counterStack_list[disk_id][c+1]-self.counterStack_prelist[c]
-	    deltaX_list.append(deltaX)
 	    if deltaX == 0:
-		reuse_distance=self.counterStack_prelist[x]
+		reuse_distance=self.counterStack_prelist[c]
 		break
 
 	# save reuse distance to the reuse distance list
@@ -138,3 +141,6 @@ class Counter_stack(object):
         if self.counter_step % self.counter_interval ==0:
 	   return self.counter_stack_naive(disk_id, block_address)
 	return self.reuseDistance_list
+
+    def get_rd_values(self):
+        return self.reuseDistance_list
