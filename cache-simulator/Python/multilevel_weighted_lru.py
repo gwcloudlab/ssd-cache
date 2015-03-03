@@ -20,7 +20,7 @@ class Multilevel_weighted_lru(Cache):
         self.timeout = 0
         self.ri = defaultdict()
         self.rd = 0  # In future this should be replaced with original rd
-        self.rd_cdf_values = []
+        self.rd_cdf_values = {}
         self.block_lookup = defaultdict(lambda: defaultdict(OrderedDict))
         self.size_lookup = defaultdict(lambda: 0)
         self.total_accesses = defaultdict(lambda: 0)
@@ -117,7 +117,6 @@ class Multilevel_weighted_lru(Cache):
         else:
             del self.block_lookup[disk_id][cache_layer][block_address]
 
-        #del self.block_lookup[disk_id][cache_layer][block_address]
         if cache_layer == 'pcie_ssd':
             cache_contents = self.pcie_ssd.pop((disk_id, block_address)) #double parenthesis are imp.
         else:
@@ -139,10 +138,12 @@ class Multilevel_weighted_lru(Cache):
         raise ValueError("There is no ID found to be evicted")
 
     def calculate_weight(self):
-        self.priority = {k: v / sum(self.ri.values()) for k, v in self.ri.items()}
+        self.ri_priority = {k: v / sum(self.ri.values()) for k, v in self.ri.items()}
+        self.priority = {k: v / sum(self.rd_cdf_values.values()) for k, v in self.rd_cdf_values.items()}
         self.weight_ssd = {k: int(v * self.maxsize_ssd) for k, v in self.priority.items()}
         self.weight_pcie_ssd = {k: int(v * self.maxsize_pcie_ssd) for k, v in self.priority.items()}
         print "Priority: \t"
+        pprint (dict(self.ri_priority))
         pprint (dict(self.priority))
         #print "Weight for pcie ssd: "
         #pprint (dict(self.weight_pcie_ssd))
