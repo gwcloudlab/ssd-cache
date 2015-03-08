@@ -3,14 +3,13 @@
 '''
 Main Function for cache for class
 '''
-import os
 import csv
 import math
-#from global_lru import Global_lru
-#from random_lru import Random_lru
-#from static_lru import Static_lru
-#from weighted_lru import Weighted_lru
-#from multilevel_global_lru import Multilevel_global_lru
+# from global_lru import Global_lru
+# from random_lru import Random_lru
+# from static_lru import Static_lru
+# from weighted_lru import Weighted_lru
+# from multilevel_global_lru import Multilevel_global_lru
 from multilevel_weighted_lru import Multilevel_weighted_lru
 from timeit import Timer
 # import pdb
@@ -41,6 +40,7 @@ def run(world, filename, num_lines, no_of_vms):
         # pdb.set_trace()
     world.print_stats()
 
+
 def pre_process_file(filename):
     """
      calculate the number of lines and the
@@ -48,15 +48,14 @@ def pre_process_file(filename):
     """
 
     num_lines = 0
-    no_of_vms = 0
+    vm_ids = set()
     with open(filename) as trace:
         for item in csv.reader(trace, delimiter=','):
             num_lines += 1
             disk_id = int(item[2])
-            if disk_id > no_of_vms:
-                no_of_vms = disk_id
-    no_of_vms += 1 # To account for index starting from 0
-    return (num_lines, no_of_vms)
+            vm_ids.add(disk_id)   # can make it more efficient
+    no_of_vms = len(vm_ids)
+    return (num_lines, no_of_vms, vm_ids)
 
 
 def display_results(ssd):
@@ -66,9 +65,10 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'MSR/src1_only_reads.csv'
-    #filename = raw_input("Enter a filename to process: ")
-    num_lines, no_of_vms = pre_process_file(filename)
+    filename = 'MSR/src2_only_reads.csv'
+    # filename = raw_input("Enter a filename to process: ")
+    num_lines, no_of_vms, vm_ids = pre_process_file(filename)
+    print "vm ids are: ", vm_ids
     print "Total no. of vms: ", no_of_vms
     print "Total no. of lines: ", num_lines
 
