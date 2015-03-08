@@ -65,7 +65,7 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'MSR/src2_only_reads.csv'
+    filename = 'MSR/wdev.csv'
     # filename = raw_input("Enter a filename to process: ")
     num_lines, no_of_vms, vm_ids = pre_process_file(filename)
     print "vm ids are: ", vm_ids
@@ -74,11 +74,11 @@ def main():
 
     # algorithms = [Global_lru, Static_lru, Weighted_lru]
     # algorithms = [Multilevel_global_lru, Global_lru]
-    algorithms = [Multilevel_weighted_lru]
-    for algorithm in algorithms:
-        world = algorithm(no_of_vms)
-        t = Timer(lambda: run(world, filename, num_lines, no_of_vms))
-        print "It took %s seconds to run" % (t.timeit(number=1))
+    # algorithms = [Multilevel_weighted_lru]
+    # for algorithm in algorithms:
+    #    world = algorithm(no_of_vms)
+    #   t = Timer(lambda: run(world, filename, num_lines, no_of_vms))
+    #     print "It took %s seconds to run" % (t.timeit(number=1))
 
 if __name__ == '__main__':
     main()
