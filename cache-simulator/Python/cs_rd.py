@@ -41,8 +41,8 @@ class Cs_rd():
 
     def calculate_deltaY(self):
         self.deltaY = []
-        for val in xrange(len(self.deltaX)-1, 0, -1):
-            self.deltaY.append(self.deltaX[val] - self.deltaX[val-1])
+        for val in xrange(len(self.deltaX)-1):
+            self.deltaY.append(self.deltaX[val+1] - self.deltaX[val])
             # We can stop when we see a value >1
 
     def calculate_rd_values(self, disk_id):
