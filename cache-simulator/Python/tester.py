@@ -6,6 +6,7 @@
 import csv
 from time import time
 from naive_rd import Naive_rd
+from cs_rd import Cs_rd
 from rd_cdf import Rd_cdf
 
 
@@ -19,6 +20,7 @@ def timing(f):
     return wrap
 
 
+@timing
 def run(algorithm, filename):
     with open(filename, 'rb') as trace:
         for item in csv.reader(trace, delimiter=','):
@@ -31,7 +33,6 @@ def run(algorithm, filename):
     # print test_cdf.construct_rd_cdf()
 
 
-@timing
 def main():
     filename = 'MSR/wdev.csv'
     # rd = defaultdict(SortedList)
@@ -41,8 +42,9 @@ def main():
     #         rd[x].add(val)
     # dist = Rd_cdf(rd)
     # dist.construct_rd_cdf()
-    rd_calculate = Naive_rd()
-    algorithms = [rd_calculate]
+    naive_rd = Naive_rd()
+    cs_rd = Cs_rd(4)
+    algorithms = [naive_rd, cs_rd]
     for algorithm in algorithms:
         run(algorithm, filename)
 

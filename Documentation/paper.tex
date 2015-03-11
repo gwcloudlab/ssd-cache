@@ -1,0 +1,64 @@
+\documentclass{sig-alternate-per}
+\usepackage{graphicx, subfigure}
+\usepackage{verbatim}
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{array}
+
+%\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{mathtools}
+\usepackage{xspace}
+
+\usepackage{epstopdf}
+\usepackage{url}
+\usepackage{color}
+\usepackage{times}
+\usepackage{comment}
+
+\usepackage{caption}
+\usepackage{authblk} % For author block style
+
+\newcommand{\cut}[1]{}
+\newcommand{\note}[1]{{\color{red}[\bf{#1}]}}
+
+\renewcommand\Authands{ and }
+\setlength{\affilsep}{1mm}
+% correct bad hyphenation here
+%\hyphenation{op-tical net-works semi-conduc-tor}
+
+\addtolength{\textfloatsep}{1mm}
+
+
+
+%
+% paper title
+% can use linebreaks \\ within to get better formatting as desired
+\title{Flash cache}
+
+
+%\author{Sundaresan Rajasekaran}
+%\author{Shaohua Duan}
+%\author{Timothy Wood}
+%\affil{Department of Computer Science, The George Washington University, Washington, D.C., USA}
+
+
+
+\begin{document}
+% make the title area
+\maketitle
+\input{abstract}
+\keywords{virtualization, flash cache}
+\input{intro}
+\input{background}
+\input{eval}
+\input{related}
+\input{conclusions}
+
+\bibliographystyle{abbrv}
+\bibliography{citations}
+
+% that's all folks
+\end{document}
