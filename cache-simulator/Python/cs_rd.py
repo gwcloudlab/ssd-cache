@@ -4,6 +4,13 @@ from hyperloglog import HyperLogLog
 
 
 class Cs_rd():
+    """
+    The value from this class will be a superset of the
+    values obtained from naive rd because at any point in
+    time we only keep the last two columns of the matrix
+    and can only append the new rd value of a block to the
+    list instead of replacing a blocks rd value
+    """
     def __init__(self, no_of_vms):
         self.no_of_vms = no_of_vms
         self.rd_list = defaultdict(list)
