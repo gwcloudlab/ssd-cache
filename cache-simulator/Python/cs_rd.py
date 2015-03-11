@@ -33,12 +33,14 @@ class Cs_rd():
             self.current_column.append(len(item))
 
     def calculate_deltaX(self):
+        self.deltaX = []
         self.deltaX = [x - y for x, y in
                        zip(self.current_column, self.previous_column)]
         # To compensate for the shorter current_column len.
         self.deltaX.append(1)
 
     def calculate_deltaY(self):
+        self.deltaY = []
         for val in xrange(len(self.deltaX)-1, 0, -1):
             self.deltaY.append(self.deltaX[val] - self.deltaX[val-1])
             # We can stop when we see a value >1
