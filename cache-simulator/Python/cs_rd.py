@@ -1,5 +1,4 @@
 from collections import defaultdict
-from sortedcontainers import SortedList
 from hyperloglog import HyperLogLog
 
 
@@ -11,14 +10,13 @@ class Cs_rd():
     and can only append the new rd value of a block to the
     list instead of replacing a blocks rd value
     """
-    def __init__(self, no_of_vms):
-        self.no_of_vms = no_of_vms
+    def __init__(self):
         self.rd_list = defaultdict(list)
         self.deltaX = []
         self.deltaY = []
         self.current_column = []
         self.previous_column = []
-        self.rd_array = defaultdict(SortedList)
+        self.rd_array = defaultdict(list)
 
     def calculate_rd(self, disk_id, block_address):
         self.calculate_unique_matrix(disk_id, block_address)
@@ -56,7 +54,7 @@ class Cs_rd():
         for indx in xrange(len(self.deltaY)):
             if self.deltaY[indx] > 0:
                 rd = self.current_column[indx]
-                self.rd_array[disk_id].add(rd)
+                self.rd_array[disk_id].append(rd)
                 break  # Assuming there will only be one value >1
 
     def get_rd_values(self):
