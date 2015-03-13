@@ -26,7 +26,7 @@ class Hrc_curve():
     def draw_cdf(self):
         plt.show()
 
-
+"""
 def main():
     hrc = Hrc_curve()
     rd_values = defaultdict(list)
@@ -36,3 +36,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+"""
