@@ -26,7 +26,7 @@ class Cs_rd():
         self.calculate_rd_values(disk_id)
 
     def calculate_unique_matrix(self, disk_id, block_address):
-        hyperll = HyperLogLog(0.01)
+        hyperll = HyperLogLog(0.1)
         self.rd_list[disk_id].append(hyperll)
         for item in self.rd_list[disk_id]:
             item.add(str(block_address))
