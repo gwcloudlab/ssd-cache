@@ -2,7 +2,7 @@ from collections import defaultdict
 from hyperloglog import HyperLogLog
 
 
-class Cs_rd():
+class CounterStack_rd():
     """
     The value from this class will be a superset of the
     values obtained from naive rd because at any point in
@@ -26,7 +26,7 @@ class Cs_rd():
         self.calculate_rd_values(disk_id)
 
     def calculate_unique_matrix(self, disk_id, block_address):
-        hyperll = HyperLogLog(0.1)
+        hyperll = HyperLogLog(0.3)
         self.rd_list[disk_id].append(hyperll)
         for item in self.rd_list[disk_id]:
             item.add(str(block_address))
@@ -42,7 +42,8 @@ class Cs_rd():
         self.deltaX = [x - y for x, y in
                        zip(self.current_column, self.previous_column)]
         # To compensate for the shorter current_column len.
-        self.deltaX.append(1)
+        if self.deltaX:
+            self.deltaX.append(1)
 
     def calculate_deltaY(self):
         self.deltaY = []

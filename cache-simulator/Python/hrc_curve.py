@@ -10,7 +10,7 @@ def compute_HRC(alg_name, rd_dict):
     http://stackoverflow.com/questions/3209362/
     how-to-plot-empirical-cdf-in-matplotlib-in-python
     """
-    lines = ['-o', '--*', '-.o', ':*']
+    lines = ['-', '--', '-.', ':']
     linecycler = cycle(lines)
 
     for disk in rd_dict.iterkeys():
@@ -23,7 +23,7 @@ def compute_HRC(alg_name, rd_dict):
                  label=alg_name + " disk: " + str(disk))
 
 def draw_cdf():
-    plt.xlabel('Cache Size', fontsize=20)
+    plt.xlabel('Cache Size (no. of blocks)', fontsize=20)
     plt.ylabel('Hit Ratio', fontsize=20)
     plt.title('CDF', fontsize=20)
     legend = plt.legend(loc='lower right', shadow=True)

@@ -2,7 +2,7 @@ from collections import defaultdict
 from collections import OrderedDict
 
 
-class Naive_rd():
+class Mattson_rd():
     def __init__(self):
         self.rd = defaultdict(OrderedDict)
         self.rd_list = defaultdict(list)

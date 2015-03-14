@@ -3,7 +3,7 @@ from cache_entry import Cache_entry
 from collections import defaultdict
 from collections import OrderedDict
 from hyperloglog import HyperLogLog
-from naive_rd import Naive_rd
+from mattson_rd import Mattson_rd
 from rd_cdf import Rd_cdf
 from pprint import pprint
 from cache import Cache
@@ -14,7 +14,7 @@ class Multilevel_weighted_lru(Cache):
 
     def __init__(self, no_of_vms):
         Cache.__init__(self)
-        self.reuse_distance = Naive_rd()
+        self.reuse_distance = mattson_rd()
         self.no_of_vms = no_of_vms
         self.time_interval = 500
         self.timeout = 0

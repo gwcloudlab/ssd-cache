@@ -5,9 +5,10 @@
 # import os
 import csv
 from time import time
-from naive_rd import Naive_rd
-from cs_rd import Cs_rd
+from mattson_rd import Mattson_rd
+from counterstack_rd import CounterStack_rd
 from rd_cdf import Rd_cdf
+import hrc_curve
 
 
 def timing(f):
@@ -28,13 +29,15 @@ def run(algorithm, filename):
             block_address = int(item[4])
             algorithm.calculate_rd(disk_id, block_address)
     rd_values = algorithm.get_rd_values()
-    print rd_values
+    alg_name = algorithm.__class__.__name__
+    hrc_curve.compute_HRC(alg_name, rd_values)
     # test_cdf = Rd_cdf(rd_values)
     # print test_cdf.construct_rd_cdf()
 
 
 def main():
-    filename = 'MSR/wdev.csv'
+    # filename = 'MSR/wdev.csv'
+    filename = 'MSR/mrc_test.csv'
     # rd = defaultdict(SortedList)
     # for x in xrange(4):
     #     for y in xrange(50):
@@ -42,11 +45,12 @@ def main():
     #         rd[x].add(val)
     # dist = Rd_cdf(rd)
     # dist.construct_rd_cdf()
-    naive_rd = Naive_rd()
-    cs_rd = Cs_rd(4)
-    algorithms = [naive_rd, cs_rd]
+    mattson = Mattson_rd()
+    counterstack = CounterStack_rd()
+    algorithms = [mattson, counterstack]
     for algorithm in algorithms:
         run(algorithm, filename)
+    hrc_curve.draw_cdf()
 
 if __name__ == '__main__':
     main()
