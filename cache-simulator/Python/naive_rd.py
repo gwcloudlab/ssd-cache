@@ -7,6 +7,7 @@ class Naive_rd():
         self.rd = defaultdict(OrderedDict)
         self.rd_list = defaultdict(list)
         self.rd_size_lookup = defaultdict(lambda: 0)
+        self.rd_array = defaultdict(list)
 
     def calculate_rd(self, disk_id, block_address):
         if block_address in self.rd[disk_id]:
@@ -22,9 +23,8 @@ class Naive_rd():
 
         self.rd[disk_id][block_address] = rd_value
 
+        if rd_value > 0:
+            self.rd_array[disk_id].append(rd_value)
+
     def get_rd_values(self):
-        rd_array = defaultdict(list)
-        for disk in self.rd.iterkeys():
-            for rd_values in self.rd[disk].itervalues():
-                rd_array[disk].append(rd_values)
-        return rd_array
+        return self.rd_array
