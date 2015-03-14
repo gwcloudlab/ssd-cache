@@ -1,7 +1,8 @@
 from cache_entry import Cache_entry
-import pprint
-from cache import Cache
 from collections import OrderedDict
+from random import randint
+from cache import Cache
+import pprint
 
 
 class Random_lru(Cache):
@@ -20,7 +21,8 @@ class Random_lru(Cache):
         else:
             new_cache_block = Cache_entry()
             if(len(self.ssd) >= self.maxsize):
-                self.ssd.popitem(last=False)
+                item_to_evict = randint(0, self.maxsize)
+                del self.ssd[item_to_evict]
                 self.stats[UUID[0], "evictions"] += 1
             self.ssd[UUID] = new_cache_block
             self.stats[UUID[0], "misses"] += 1
