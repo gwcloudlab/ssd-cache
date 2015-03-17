@@ -18,5 +18,7 @@ class Rank_mattson_rd():
                 if len(block_rd) > 1:
                     for indx in xrange(len(block_rd) - 1):
                         rd_array[disk].append(block_rd[indx+1] - block_rd[indx])
+                else:
+                    rd_array[disk].append(1000)
         self.rd.clear()
         return rd_array
