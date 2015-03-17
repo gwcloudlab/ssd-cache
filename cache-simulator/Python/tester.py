@@ -6,6 +6,7 @@
 import csv
 from time import time
 from mattson_rd import Mattson_rd
+from rank_mattson_rd import Rank_mattson_rd
 from counterstack_rd import CounterStack_rd
 from rd_cdf import Rd_cdf
 import hrc_curve
@@ -23,12 +24,16 @@ def timing(f):
 
 @timing
 def run(algorithm, filename):
+    line = 0
     with open(filename, 'rb') as trace:
         for item in csv.reader(trace, delimiter=','):
+            line += 1
             disk_id = int(item[2])
             block_address = int(item[4])
             algorithm.calculate_rd(disk_id, block_address)
+            # print line,
     rd_values = algorithm.get_rd_values()
+    # print rd_values
     alg_name = algorithm.__class__.__name__
     hrc_curve.compute_HRC(alg_name, rd_values)
     # test_cdf = Rd_cdf(rd_values)
@@ -36,8 +41,10 @@ def run(algorithm, filename):
 
 
 def main():
-    # filename = 'MSR/wdev.csv'
-    filename = 'MSR/mrc_test.csv'
+    # filename = 'MSR/wdev.csv'  # 1.4K file
+    # filename = 'MSR/pre-processed.csv' # 87M
+    # filename = 'MSR/mrc_test.csv'  # 51K
+    filename = 'MSR/pre.csv'  # 870M
     # rd = defaultdict(SortedList)
     # for x in xrange(4):
     #     for y in xrange(50):
@@ -46,8 +53,9 @@ def main():
     # dist = Rd_cdf(rd)
     # dist.construct_rd_cdf()
     mattson = Mattson_rd()
+    rank_mattson = Rank_mattson_rd()
     counterstack = CounterStack_rd()
-    algorithms = [mattson, counterstack]
+    algorithms = [rank_mattson]
     for algorithm in algorithms:
         run(algorithm, filename)
     hrc_curve.draw_cdf()
