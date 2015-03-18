@@ -1,9 +1,7 @@
-from collections import defaultdict
 from statsmodels import api as sm
 import matplotlib.pyplot as plt
 from itertools import cycle
 import numpy as np
-from random import randint
 
 
 def compute_HRC(alg_name, rd_dict):
@@ -29,10 +27,11 @@ def compute_HRC(alg_name, rd_dict):
 
         plt.plot(x_vals, y_vals,
                  next(linecycler),
-                 linewidth = 2.0,
+                 linewidth=2.0,
                  label=alg_name + " disk: " + str(disk))
 
-def draw_cdf():
+
+def draw_cdf(name):
     plt.xlabel('Cache Size (no. of blocks)', fontsize=20)
     plt.ylabel('Hit Ratio', fontsize=20)
     plt.title('CDF', fontsize=20)
@@ -42,9 +41,8 @@ def draw_cdf():
     frame = legend.get_frame()
     frame.set_facecolor('0.90')
     plt.grid(True)
-    plt.xlim([0, 800])
-    plt.show()
-    # plt.savefig('mattson_vs_counterstack.png')
+    # plt.show()
+    plt.savefig(name + '.png')
 
 """
 def main():
