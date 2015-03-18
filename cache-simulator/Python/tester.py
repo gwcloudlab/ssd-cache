@@ -2,13 +2,13 @@
 # from random import randint
 # from sortedcontainers import SortedList
 # from collections import defaultdict
-# import os
+import os
 import csv
 from time import time
-from mattson_rd import Mattson_rd
+# from mattson_rd import Mattson_rd
+# from counterstack_rd import CounterStack_rd
+# from rd_cdf import Rd_cdf
 from rank_mattson_rd import Rank_mattson_rd
-from counterstack_rd import CounterStack_rd
-from rd_cdf import Rd_cdf
 import hrc_curve
 
 
@@ -33,7 +33,6 @@ def run(algorithm, filename):
             algorithm.calculate_rd(disk_id, block_address)
             # print line,
     rd_values = algorithm.get_rd_values()
-    # print rd_values
     alg_name = algorithm.__class__.__name__
     hrc_curve.compute_HRC(alg_name, rd_values)
     # test_cdf = Rd_cdf(rd_values)
@@ -41,24 +40,23 @@ def run(algorithm, filename):
 
 
 def main():
-    # filename = 'MSR/wdev.csv'  # 1.4K file
-    # filename = 'MSR/pre-processed.csv' # 87M
-    # filename = 'MSR/mrc_test.csv'  # 51K
-    filename = 'MSR/pre.csv'  # 870M
-    # rd = defaultdict(SortedList)
-    # for x in xrange(4):
-    #     for y in xrange(50):
-    #         val = randint(1, 10)
-    #         rd[x].add(val)
-    # dist = Rd_cdf(rd)
-    # dist.construct_rd_cdf()
-    mattson = Mattson_rd()
-    rank_mattson = Rank_mattson_rd()
-    counterstack = CounterStack_rd()
-    algorithms = [rank_mattson]
-    for algorithm in algorithms:
-        run(algorithm, filename)
-    hrc_curve.draw_cdf()
+    all_files = ['hm_reads_only_sorted.csv', 'mds_reads_only_sorted.csv',
+                 'prn_reads_only_sorted.csv', 'proj_reads_only_sorted.csv',
+                 'prxy_reads_only_sorted.csv', 'rsrch_reads_only_sorted.csv',
+                 'src.csv_reads_only_sorted', 'stg_reads_only_sorted.csv',
+                 'ts_reads_only_sorted.csv', 'usr_reads_only_sorted.csv',
+                 'wdev_reads_only_sorted.csv', 'web_reads_only_sorted.csv']
+    for name in all_files:
+        print name
+        filename = os.path.join('MSR', name)
+        # filename = 'MSR/wdev.csv'  # 1.4K file
+        # mattson = Mattson_rd()
+        # counterstack = CounterStack_rd()
+        rank_mattson = Rank_mattson_rd()
+        algorithms = [rank_mattson]
+        for algorithm in algorithms:
+            run(algorithm, filename)
+        hrc_curve.draw_cdf(name)
 
 if __name__ == '__main__':
     main()
