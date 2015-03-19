@@ -26,7 +26,7 @@ class Mattson_rd():
         if rd_value > 0:
             self.rd_array[disk_id].append(rd_value)
         else:
-            self.rd_array[disk_id].append(1000)
+            self.rd_array[disk_id].append(99999999999)
 
     def get_rd_values(self):
         return self.rd_array

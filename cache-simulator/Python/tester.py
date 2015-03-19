@@ -40,12 +40,14 @@ def run(algorithm, filename):
 
 
 def main():
-    all_files = ['hm_reads_only_sorted.csv', 'mds_reads_only_sorted.csv',
-                 'prn_reads_only_sorted.csv', 'proj_reads_only_sorted.csv',
-                 'prxy_reads_only_sorted.csv', 'rsrch_reads_only_sorted.csv',
-                 'src.csv_reads_only_sorted', 'stg_reads_only_sorted.csv',
-                 'ts_reads_only_sorted.csv', 'usr_reads_only_sorted.csv',
-                 'wdev_reads_only_sorted.csv', 'web_reads_only_sorted.csv']
+    """
+    all_files = ['hm.csv', 'mds.csv',
+                 'prn.csv', 'proj.csv',
+                 'prxy.csv', 'rsrch.csv']
+                 'src.csv']
+    """
+    #all_files = ['stg.csv', 'ts.csv', 'usr.csv', 'wdev.csv', 'web.csv']
+    all_files = ['src.csv']
     for name in all_files:
         print name
         filename = os.path.join('MSR', name)

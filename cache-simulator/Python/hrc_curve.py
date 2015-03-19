@@ -43,6 +43,7 @@ def draw_cdf(name):
     plt.grid(True)
     # plt.show()
     plt.savefig(name + '.png')
+    plt.clf()
 
 """
 def main():
