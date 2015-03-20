@@ -33,7 +33,9 @@ def run(algorithm, filename):
             algorithm.calculate_rd(disk_id, block_address)
             # print line,
     rd_values = algorithm.get_rd_values()
-    hrc_curve.compute_HRC(rd_values)
+    rd_cdf = hrc_curve.compute_HRC(rd_values)
+    sim_anneal = hrc_curve.anneal(rd_cdf)
+    hrc_curve.draw_figure('Rank Mattson', rd_cdf)
     # test_cdf = Rd_cdf(rd_values)
     # print test_cdf.construct_rd_cdf()
 
@@ -55,7 +57,6 @@ def main():
         algorithms = [rank_mattson]
         for algorithm in algorithms:
             run(algorithm, filename)
-        hrc_curve.draw_cdf(name)
 
 if __name__ == '__main__':
     main()

@@ -1,14 +1,14 @@
+from collections import defaultdict
 from statsmodels import api as sm
 import matplotlib.pyplot as plt
 from itertools import cycle
 import numpy as np
 
 
-lines = ['-', '--', '-.', ':']
-linecycler = cycle(lines)
+def compute_HRC(rd_dict):
 
+    rd_cdf = defaultdict(lambda: defaultdict(list))
 
-def compute_HRC(rd_dict, draw=False):
     for disk in rd_dict.iterkeys():
         sorted_array = np.sort(rd_dict[disk][:])
 
@@ -26,18 +26,23 @@ def compute_HRC(rd_dict, draw=False):
         x_vals = np.linspace(sorted_array[0], second_largest, second_largest)
         y_vals = ecdf(x_vals)
 
-        if draw:
-            draw_figure(x_vals, y_vals, disk)
+        rd_cdf[disk]['x_axis'] = x_vals
+        rd_cdf[disk]['y_axis'] = y_vals
+
+    return rd_cdf
 
 
-def draw_figure(x_vals, y_vals, disk):
-    plt.plot(x_vals, y_vals,
-             next(linecycler),
-             linewidth=2.0,
-             label="Disk: " + str(disk))
+def draw_figure(name, nested_dict):
 
+    lines = ['-', '--', '-.', ':']
+    linecycler = cycle(lines)
 
-def draw_cdf(name):
+    for disk in nested_dict.iterkeys():
+        plt.plot(nested_dict[disk]['x_axis'], nested_dict[disk]['y_axis'],
+                 next(linecycler),
+                 linewidth=2.0,
+                 label="Disk: " + str(disk))
+
     plt.xlabel('Cache Size in no. of blocks', fontsize=20)
     plt.ylabel('Hit Ratio', fontsize=20)
     plt.title('CDF', fontsize=20)
