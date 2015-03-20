@@ -33,21 +33,18 @@ def run(algorithm, filename):
             algorithm.calculate_rd(disk_id, block_address)
             # print line,
     rd_values = algorithm.get_rd_values()
-    alg_name = algorithm.__class__.__name__
-    hrc_curve.compute_HRC(alg_name, rd_values)
+    hrc_curve.compute_HRC(rd_values)
     # test_cdf = Rd_cdf(rd_values)
     # print test_cdf.construct_rd_cdf()
 
 
 def main():
     """
-    all_files = ['hm.csv', 'mds.csv',
-                 'prn.csv', 'proj.csv',
-                 'prxy.csv', 'rsrch.csv']
-                 'src.csv']
+    all_files = ['hm.csv', 'mds.csv', 'prn.csv', 'proj.csv',
+                 'prxy.csv', 'rsrch.csv', 'src.csv', 'stg.csv',
+                 'ts.csv', 'usr.csv', 'wdev.csv', 'web.csv']
     """
-    #all_files = ['stg.csv', 'ts.csv', 'usr.csv', 'wdev.csv', 'web.csv']
-    all_files = ['src.csv']
+    all_files = ['hm.csv']
     for name in all_files:
         print name
         filename = os.path.join('MSR', name)
