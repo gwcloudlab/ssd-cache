@@ -4,10 +4,11 @@ from itertools import cycle
 import numpy as np
 
 
-def compute_HRC(alg_name, rd_dict):
-    lines = ['-', '--', '-.', ':']
-    linecycler = cycle(lines)
+lines = ['-', '--', '-.', ':']
+linecycler = cycle(lines)
 
+
+def compute_HRC(rd_dict, draw=False):
     for disk in rd_dict.iterkeys():
         sorted_array = np.sort(rd_dict[disk][:])
 
@@ -25,14 +26,19 @@ def compute_HRC(alg_name, rd_dict):
         x_vals = np.linspace(sorted_array[0], second_largest, second_largest)
         y_vals = ecdf(x_vals)
 
-        plt.plot(x_vals, y_vals,
-                 next(linecycler),
-                 linewidth=2.0,
-                 label=alg_name + " disk: " + str(disk))
+        if draw:
+            draw_figure(x_vals, y_vals, disk)
+
+
+def draw_figure(x_vals, y_vals, disk):
+    plt.plot(x_vals, y_vals,
+             next(linecycler),
+             linewidth=2.0,
+             label="Disk: " + str(disk))
 
 
 def draw_cdf(name):
-    plt.xlabel('Cache Size (no. of blocks)', fontsize=20)
+    plt.xlabel('Cache Size in no. of blocks', fontsize=20)
     plt.ylabel('Hit Ratio', fontsize=20)
     plt.title('CDF', fontsize=20)
     legend = plt.legend(loc='lower right', shadow=True)
@@ -41,6 +47,6 @@ def draw_cdf(name):
     frame = legend.get_frame()
     frame.set_facecolor('0.90')
     plt.grid(True)
-    # plt.show()
+    plt.show()
     plt.savefig(name + '.png')
     plt.clf()
