@@ -44,16 +44,3 @@ def draw_cdf(name):
     # plt.show()
     plt.savefig(name + '.png')
     plt.clf()
-
-"""
-def main():
-    rd_values = defaultdict(list)
-    for i in xrange(4):
-        for x in xrange(50):
-            rd_values[1].append(randint(1, 50))
-    compute_HRC(rd_values)
-    draw_cdf()
-
-if __name__ == '__main__':
-    main()
-"""
