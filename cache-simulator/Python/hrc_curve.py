@@ -3,6 +3,7 @@ from statsmodels import api as sm
 import matplotlib.pyplot as plt
 from itertools import cycle
 import numpy as np
+import os
 
 
 def compute_HRC(rd_dict):
@@ -23,13 +24,40 @@ def compute_HRC(rd_dict):
                 break
 
         ecdf = sm.distributions.ECDF(sorted_array)
-        x_vals = np.linspace(sorted_array[0], second_largest, second_largest)
+        x_vals = np.linspace(sorted_array[0], second_largest, 50)  # hardcoded
         y_vals = ecdf(x_vals)
 
         rd_cdf[disk]['x_axis'] = x_vals
         rd_cdf[disk]['y_axis'] = y_vals
 
     return rd_cdf
+
+
+def anneal(rd_cdf):
+
+    write_infile_simanneal(rd_cdf)
+    os.system("./sim_anneal")
+    sa_solution = [line.strip() for line in open("sa_solution.txt", 'r')]
+    sa_solution = map(int, sa_solution)
+
+    cdf_values = {}
+    for disk, optimal_rd in zip(rd_cdf.keys(), sa_solution):
+        cdf_values[disk] = rd_cdf[disk]['x_axis'][optimal_rd]
+
+    return cdf_values
+
+
+def write_infile_simanneal(rd_cdf):
+    with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
+        out_file.write(' ' + str(len(rd_cdf)) + ' ' + '50' +
+                       ' ' + str(1) + '\n')
+        out_file.write(' ' + '500000' + '\n')
+        for disk in rd_cdf.keys():
+            out_file.write(' ' + str(disk + 1) + '\n')
+            for x, y in zip(rd_cdf[disk]['x_axis'], rd_cdf[disk]['y_axis']):
+                y *= 100  # sim anneal cpp doesn't work with float
+                out_file.write(' ' + str('%.2f' % y) +
+                               ' ' + str('%.2f' % x) + '\n')
 
 
 def draw_figure(name, nested_dict):

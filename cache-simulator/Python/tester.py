@@ -34,7 +34,8 @@ def run(algorithm, filename):
             # print line,
     rd_values = algorithm.get_rd_values()
     rd_cdf = hrc_curve.compute_HRC(rd_values)
-    sim_anneal = hrc_curve.anneal(rd_cdf)
+    annealed_values = hrc_curve.anneal(rd_cdf)
+    print annealed_values
     hrc_curve.draw_figure('Rank Mattson', rd_cdf)
     # test_cdf = Rd_cdf(rd_values)
     # print test_cdf.construct_rd_cdf()
