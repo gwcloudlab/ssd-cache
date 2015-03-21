@@ -1,5 +1,7 @@
 *.dat
 *.pyc
+*.png
+*.txt
 *~
 *.backup
 MSR/
