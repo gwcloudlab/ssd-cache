@@ -5,6 +5,7 @@
 *~
 *.backup
 MSR/
+log/
 .idea/
 .DS_Store
 
