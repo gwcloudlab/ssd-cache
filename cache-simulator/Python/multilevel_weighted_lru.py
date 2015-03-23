@@ -105,7 +105,7 @@ class Multilevel_weighted_lru(Cache):
                                            removed_item['block_address'],
                                            removed_item['cache_contents'])
         else:
-            self.stats[disk_id, 'miss'] += 1
+            self.stats[disk_id, 'total', 'miss'] += 1
             cache_layer = 'pcie_ssd'
             self.add_item_to_cache('pcie_ssd',
                                    disk_id,
@@ -183,3 +183,4 @@ class Multilevel_weighted_lru(Cache):
         print "\nMultilevel weighted LRU:\n"
         print "Weight: ", self.weight, "\n"
         pprint(dict(self.stats))
+        hrc_curve.print_stats('Multi_weighted', self.stats)

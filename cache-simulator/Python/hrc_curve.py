@@ -1,8 +1,10 @@
+from __future__ import division
 from collections import defaultdict
 from statsmodels import api as sm
 import matplotlib.pyplot as plt
 from itertools import cycle
 import numpy as np
+from pprint import pprint
 import os
 
 
@@ -43,7 +45,8 @@ def anneal(rd_cdf):
         Optimal rd vaules for a given cache size
     """
     for disk in rd_cdf:
-        if rd_cdf[disk]['x_axis'][0] > 99999999 or rd_cdf[disk]['y_axis'][-1] == 0:
+        if (rd_cdf[disk]['x_axis'][0] > 99999999 or
+                rd_cdf[disk]['y_axis'][-1] == 0):
             rd_cdf[disk]['x_axis'] = len(rd_cdf[disk]['x_axis'])*[0]
 
     write_infile_sim_anneal(rd_cdf)
@@ -62,7 +65,7 @@ def write_infile_sim_anneal(rd_cdf):
     with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
         out_file.write(' ' + str(len(rd_cdf)) + ' ' + '50' +
                        ' ' + str(1) + '\n')
-        out_file.write(' ' + '500000' + '\n')
+        out_file.write(' ' + '1000000' + '\n')
         for disk in rd_cdf.keys():
             out_file.write(' ' + str(disk + 1) + '\n')
             for x, y in zip(rd_cdf[disk]['x_axis'], rd_cdf[disk]['y_axis']):
@@ -94,3 +97,25 @@ def draw_figure(name, nested_dict):
     plt.show()
     plt.savefig(name + '.png')
     plt.clf()
+
+
+def print_stats(algo, stats):
+    stats_insight = defaultdict(lambda: defaultdict(lambda: 0))
+    for k, v in stats.iteritems():
+        if k[2] == 'hits':
+            stats_insight[k[0]]['total_hits'] += v
+        elif k[2] == 'miss':
+            stats_insight[k[0]]['total_misses'] += v
+
+    with open(os.path.join('log', 'runs.log'), 'a') as out_file:
+        out_file.write('\n' + algo + '\n')
+        pprint(dict(stats), out_file)
+        for disk in stats_insight.iterkeys():
+            hitrate = (stats_insight[disk]['total_hits'] /
+                       (stats_insight[disk]['total_hits'] +
+                       stats_insight[disk]['total_misses']))
+            out_file.write("Hit rate of disk " +
+                           str(disk) +
+                           'is ' +
+                           str(hitrate) +
+                           '\n')

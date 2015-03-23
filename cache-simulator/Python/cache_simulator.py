@@ -65,7 +65,7 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'MSR/hm.csv'
+    filename = 'MSR/tiny_hm.csv'
     num_lines, no_of_vms, vm_ids = pre_process_file(filename)
     print "vm ids are: ", vm_ids
     print "Total no. of vms: ", no_of_vms
