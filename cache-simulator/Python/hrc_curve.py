@@ -17,14 +17,14 @@ def compute_HRC(rd_dict):
         # ex. sorted_array = [1,2,3,3,3,4,1000,1000,...]
         # We want that 1000 to be included in the cdf but not
         # in the graph.
-        largest_element = sorted_array[-1]
+        actual_largest = sorted_array[-1]
         for element in reversed(sorted_array):
-            if element < largest_element:
-                second_largest = element
+            if element < actual_largest:
+                actual_largest = element
                 break
 
         ecdf = sm.distributions.ECDF(sorted_array)
-        x_vals = np.linspace(sorted_array[0], second_largest, 50)  # hardcoded
+        x_vals = np.linspace(sorted_array[0], actual_largest, 50)  # hardcoded
         y_vals = ecdf(x_vals)
 
         rd_cdf[disk]['x_axis'] = x_vals
@@ -35,7 +35,18 @@ def compute_HRC(rd_dict):
 
 def anneal(rd_cdf):
 
-    write_infile_simanneal(rd_cdf)
+    """
+    Precondition:
+        The rd vaules should not be empty
+        The rd values should not have all 9999999 values's
+    Postcondition:
+        Optimal rd vaules for a given cache size
+    """
+    for disk in rd_cdf:
+        if rd_cdf[disk]['x_axis'][0] > 99999999 or rd_cdf[disk]['y_axis'][-1] == 0:
+            rd_cdf[disk]['x_axis'] = len(rd_cdf[disk]['x_axis'])*[0]
+
+    write_infile_sim_anneal(rd_cdf)
     os.system("./sim_anneal")
     sa_solution = [line.strip() for line in open("sa_solution.txt", 'r')]
     sa_solution = map(int, sa_solution)
@@ -47,7 +58,7 @@ def anneal(rd_cdf):
     return cdf_values
 
 
-def write_infile_simanneal(rd_cdf):
+def write_infile_sim_anneal(rd_cdf):
     with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
         out_file.write(' ' + str(len(rd_cdf)) + ' ' + '50' +
                        ' ' + str(1) + '\n')

@@ -18,14 +18,17 @@ def timing(f):
 @timing
 def run(algorithm, filename):
     with open(filename, 'rb') as trace:
+        line = 0
         for item in csv.reader(trace, delimiter=','):
+            line += 1
             disk_id = int(item[2])
             block_address = int(item[4])
             algorithm.calculate_rd(disk_id, block_address)
-    rd_values = algorithm.get_rd_values()
-    rd_cdf = hrc_curve.compute_HRC(rd_values)
-    annealed_values = hrc_curve.anneal(rd_cdf)
-    print annealed_values
+            if line % 5000 == 0:
+                rd_values = algorithm.get_rd_values()
+                rd_cdf = hrc_curve.compute_HRC(rd_values)
+                annealed_values = hrc_curve.anneal(rd_cdf)
+                print annealed_values
     hrc_curve.draw_figure('Rank Mattson', rd_cdf)
 
 

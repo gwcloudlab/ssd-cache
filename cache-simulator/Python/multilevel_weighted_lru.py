@@ -3,20 +3,20 @@ from cache_entry import Cache_entry
 from collections import defaultdict
 from collections import OrderedDict
 from hyperloglog import HyperLogLog
-from mattson_rd import Mattson_rd
-from rd_cdf import Rd_cdf
+from rank_mattson_rd import Rank_mattson_rd
 from pprint import pprint
 from cache import Cache
 from time import time
+import hrc_curve
 
 
 class Multilevel_weighted_lru(Cache):
 
     def __init__(self, no_of_vms):
         Cache.__init__(self)
-        self.reuse_distance = mattson_rd()
+        self.reuse_distance = Rank_mattson_rd()
         self.no_of_vms = no_of_vms
-        self.time_interval = 500
+        self.time_interval = 5000
         self.timeout = 0
         self.ri = defaultdict()
         self.rd = 0  # In future this should be replaced with original rd
@@ -38,16 +38,23 @@ class Multilevel_weighted_lru(Cache):
         """
         self.total_accesses[disk_id] += 1
         self.unique_blocks[disk_id].add(str(block_address))
-        self.handle_hit_miss_evict(disk_id, block_address)
         self.reuse_distance.calculate_rd(disk_id, block_address)
+        self.handle_hit_miss_evict(disk_id, block_address)
+
         if time_of_access > self.timeout:
+            # Increase the time count
             self.timeout = time_of_access + self.time_interval
-            self.calculate_reuse_intensity()
-            self.calculate_weight()
+
+            # Calculate RD and get annealed values
             rd_values = self.reuse_distance.get_rd_values()
-            # For cdf calculation we have to create a new object every single time
-            rd_cdf = Rd_cdf(rd_values)
-            self.rd_cdf_values = rd_cdf.construct_rd_cdf()
+            rd_cdf = hrc_curve.compute_HRC(rd_values)
+            annealed_values = hrc_curve.anneal(rd_cdf)
+            print annealed_values
+
+            # Calculate Reuse Intensity
+            # self.calculate_reuse_intensity()
+
+            # self.calculate_weight()
 
     def timing(f):
         def wrap(*args):
@@ -83,11 +90,11 @@ class Multilevel_weighted_lru(Cache):
                 self.block_lookup[disk_id][cache_layer][block_address] = cache_contents
             else:
                 removed_item = self.remove_item_from_cache('ssd', disk_id, block_address)
-                self.add_item_to_cache( 'pcie_ssd', removed_item['disk_id'], 
+                self.add_item_to_cache( 'pcie_ssd', removed_item['disk_id'],
                                     removed_item['block_address'], removed_item['cache_contents'])
                 if len(self.pcie_ssd) > self.maxsize_pcie_ssd:
                     removed_item = self.remove_item_from_cache('pcie_ssd')
-                    self.add_item_to_cache( 'ssd', removed_item['disk_id'], 
+                    self.add_item_to_cache( 'ssd', removed_item['disk_id'],
                                     removed_item['block_address'], removed_item['cache_contents'])
         else:
             self.stats[disk_id, 'miss'] += 1
@@ -95,12 +102,12 @@ class Multilevel_weighted_lru(Cache):
             self.add_item_to_cache('pcie_ssd', disk_id, block_address, Cache_entry())
             if len(self.pcie_ssd) > self.maxsize_pcie_ssd:
                 removed_item = self.remove_item_from_cache('pcie_ssd')
-                self.add_item_to_cache( 'ssd', removed_item['disk_id'], 
+                self.add_item_to_cache( 'ssd', removed_item['disk_id'],
                                 removed_item['block_address'], removed_item['cache_contents'])
                 if len(self.ssd) > self.maxsize_ssd:
                     removed_item = self.remove_item_from_cache('ssd')
 
-    #@timing
+    # @timing
     def add_item_to_cache(self, cache_layer, disk_id, block_address, cache_contents):
         if cache_layer == 'pcie_ssd':
             self.pcie_ssd[(disk_id, block_address)] = cache_contents
@@ -109,7 +116,7 @@ class Multilevel_weighted_lru(Cache):
         self.size_lookup[(disk_id, cache_layer)] += 1
         self.block_lookup[disk_id][cache_layer][block_address] = self.rd
 
-    #@timing
+    # @timing
     def remove_item_from_cache(self, cache_layer, disk_id=None, block_address=None):
         if disk_id == None:
             disk_id = self.find_id_to_evict(cache_layer)
@@ -125,11 +132,11 @@ class Multilevel_weighted_lru(Cache):
         self.stats[disk_id, cache_layer , 'evicts'] += 1
         self.size_lookup[(disk_id, cache_layer)] -= 1
 
-        return { 'disk_id': disk_id, 
-                 'block_address': block_address, 
+        return { 'disk_id': disk_id,
+                 'block_address': block_address,
                  'cache_contents': cache_contents }
 
-    #@timing
+    # @timing
     def find_id_to_evict(self, cache_layer):
         for (disk_id, layer), count in self.size_lookup.iteritems():
             if layer == cache_layer:
