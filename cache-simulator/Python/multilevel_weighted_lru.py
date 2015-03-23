@@ -30,6 +30,15 @@ class Multilevel_weighted_lru(Cache):
             hyperll = HyperLogLog(0.01)
             self.unique_blocks[x] = hyperll
 
+    def timing(f):
+        def wrap(*args):
+            time1 = time()
+            ret = f(*args)
+            time2 = time()
+            print '%s took %0.3f ms' % (f.func_name, (time2-time1)*1000.0)
+            return ret
+        return wrap
+
     def sim_read(self, time_of_access, disk_id, block_address):
         """
         This will handle the initial read of a block address
@@ -48,22 +57,13 @@ class Multilevel_weighted_lru(Cache):
             # Calculate RD and get annealed values
             rd_values = self.reuse_distance.get_rd_values()
             rd_cdf = hrc_curve.compute_HRC(rd_values)
-            annealed_values = hrc_curve.anneal(rd_cdf)
-            print annealed_values
+            self.weight_ssd = hrc_curve.anneal(rd_cdf)
+            print self.weight_ssd
 
             # Calculate Reuse Intensity
             # self.calculate_reuse_intensity()
 
             # self.calculate_weight()
-
-    def timing(f):
-        def wrap(*args):
-            time1 = time()
-            ret = f(*args)
-            time2 = time()
-            # print '%s took %0.3f ms' % (f.func_name, (time2-time1)*1000.0)
-            return ret
-        return wrap
 
     def calculate_reuse_intensity(self):
         for disk in xrange(self.no_of_vms):
@@ -86,29 +86,43 @@ class Multilevel_weighted_lru(Cache):
         if cache_layer is not None:
             self.stats[disk_id, cache_layer, 'hits'] += 1
             if cache_layer == 'pcie_ssd':
-                cache_contents = self.block_lookup[disk_id][cache_layer].pop(block_address)
-                self.block_lookup[disk_id][cache_layer][block_address] = cache_contents
+                cache_contents = self.block_lookup[disk_id][
+                                 cache_layer].pop(block_address)
+                self.block_lookup[disk_id][
+                                  cache_layer][block_address] = cache_contents
             else:
-                removed_item = self.remove_item_from_cache('ssd', disk_id, block_address)
-                self.add_item_to_cache( 'pcie_ssd', removed_item['disk_id'],
-                                    removed_item['block_address'], removed_item['cache_contents'])
+                removed_item = self.remove_item_from_cache('ssd',
+                                                           disk_id,
+                                                           block_address)
+                self.add_item_to_cache('pcie_ssd',
+                                       removed_item['disk_id'],
+                                       removed_item['block_address'],
+                                       removed_item['cache_contents'])
                 if len(self.pcie_ssd) > self.maxsize_pcie_ssd:
                     removed_item = self.remove_item_from_cache('pcie_ssd')
-                    self.add_item_to_cache( 'ssd', removed_item['disk_id'],
-                                    removed_item['block_address'], removed_item['cache_contents'])
+                    self.add_item_to_cache('ssd',
+                                           removed_item['disk_id'],
+                                           removed_item['block_address'],
+                                           removed_item['cache_contents'])
         else:
             self.stats[disk_id, 'miss'] += 1
             cache_layer = 'pcie_ssd'
-            self.add_item_to_cache('pcie_ssd', disk_id, block_address, Cache_entry())
+            self.add_item_to_cache('pcie_ssd',
+                                   disk_id,
+                                   block_address,
+                                   Cache_entry())
             if len(self.pcie_ssd) > self.maxsize_pcie_ssd:
                 removed_item = self.remove_item_from_cache('pcie_ssd')
-                self.add_item_to_cache( 'ssd', removed_item['disk_id'],
-                                removed_item['block_address'], removed_item['cache_contents'])
+                self.add_item_to_cache('ssd',
+                                       removed_item['disk_id'],
+                                       removed_item['block_address'],
+                                       removed_item['cache_contents'])
                 if len(self.ssd) > self.maxsize_ssd:
                     removed_item = self.remove_item_from_cache('ssd')
 
     # @timing
-    def add_item_to_cache(self, cache_layer, disk_id, block_address, cache_contents):
+    def add_item_to_cache(self, cache_layer, disk_id,
+                          block_address, cache_contents):
         if cache_layer == 'pcie_ssd':
             self.pcie_ssd[(disk_id, block_address)] = cache_contents
         else:
@@ -117,24 +131,26 @@ class Multilevel_weighted_lru(Cache):
         self.block_lookup[disk_id][cache_layer][block_address] = self.rd
 
     # @timing
-    def remove_item_from_cache(self, cache_layer, disk_id=None, block_address=None):
-        if disk_id == None:
+    def remove_item_from_cache(self, cache_layer,
+                               disk_id=None, block_address=None):
+        if disk_id is None:
             disk_id = self.find_id_to_evict(cache_layer)
-            block_address, rd = self.block_lookup[disk_id][cache_layer].popitem(last=False)
+            block_address, rd = self.block_lookup[disk_id][
+                                cache_layer].popitem(last=False)
         else:
             del self.block_lookup[disk_id][cache_layer][block_address]
 
         if cache_layer == 'pcie_ssd':
-            cache_contents = self.pcie_ssd.pop((disk_id, block_address)) #double parenthesis are imp.
+            cache_contents = self.pcie_ssd.pop((disk_id, block_address))
         else:
             cache_contents = self.ssd.pop((disk_id, block_address))
 
-        self.stats[disk_id, cache_layer , 'evicts'] += 1
+        self.stats[disk_id, cache_layer, 'evicts'] += 1
         self.size_lookup[(disk_id, cache_layer)] -= 1
 
-        return { 'disk_id': disk_id,
-                 'block_address': block_address,
-                 'cache_contents': cache_contents }
+        return {'disk_id': disk_id,
+                'block_address': block_address,
+                'cache_contents': cache_contents}
 
     # @timing
     def find_id_to_evict(self, cache_layer):
@@ -145,19 +161,23 @@ class Multilevel_weighted_lru(Cache):
         raise ValueError("There is no ID found to be evicted")
 
     def calculate_weight(self):
-        self.ri_priority = {k: v / sum(self.ri.values()) for k, v in self.ri.items()}
-        self.priority = {k: v / sum(self.rd_cdf_values.values()) for k, v in self.rd_cdf_values.items()}
-        self.weight_ssd = {k: int(v * self.maxsize_ssd) for k, v in self.priority.items()}
-        self.weight_pcie_ssd = {k: int(v * self.maxsize_pcie_ssd) for k, v in self.priority.items()}
+        self.ri_priority = {k: v / sum(self.ri.values())
+                            for k, v in self.ri.items()}
+        self.priority = {k: v / sum(self.rd_cdf_values.values())
+                         for k, v in self.rd_cdf_values.items()}
+        self.weight_ssd = {k: int(v * self.maxsize_ssd)
+                           for k, v in self.priority.items()}
+        self.weight_pcie_ssd = {k: int(v * self.maxsize_pcie_ssd)
+                                for k, v in self.priority.items()}
         print "Priority: \t"
-        pprint (dict(self.ri_priority))
-        pprint (dict(self.priority))
-        #print "Weight for pcie ssd: "
-        #pprint (dict(self.weight_pcie_ssd))
-        #print "Weight for ssd: "
-        #pprint (dict(self.weight_ssd))
-        #print "Actual size occupied: "
-        #pprint (dict(self.size_lookup))
+        pprint(dict(self.ri_priority))
+        pprint(dict(self.priority))
+        # print "Weight for pcie ssd: "
+        # pprint (dict(self.weight_pcie_ssd))
+        # print "Weight for ssd: "
+        # pprint (dict(self.weight_ssd))
+        # print "Actual size occupied: "
+        # pprint (dict(self.size_lookup))
 
     def print_stats(self):
         print "\nMultilevel weighted LRU:\n"

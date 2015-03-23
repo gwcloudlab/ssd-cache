@@ -1,7 +1,4 @@
-'''
-Cache simulator
-'''
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 
 
 class Cache(object):
@@ -17,9 +14,9 @@ class Cache(object):
         self.weight_pcie_ssd = defaultdict(lambda: 0)
         self.weight_ssd = defaultdict(lambda: 0)
         # self.maxsize = sum(self.weight.values()) + 100000
-        self.maxsize = 100000
-        self.maxsize_ssd = 100000
-        self.maxsize_pcie_ssd = 10000 #10% of ssd cache
+        self.maxsize = 1000000  # 1e6 blocks can fir
+        self.maxsize_ssd = 1000000
+        self.maxsize_pcie_ssd = 10000  # 10% of ssd cache
         self.stats = defaultdict(lambda: 0)
 
     def delete(self):
