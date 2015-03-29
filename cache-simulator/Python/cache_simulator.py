@@ -5,6 +5,8 @@ Main Function for cache for class
 '''
 import csv
 import math
+import sys
+import os
 # from global_lru import Global_lru
 # from random_lru import Random_lru
 # from static_lru import Static_lru
@@ -18,11 +20,16 @@ import hrc_curve
 
 
 def run(world, filename, num_lines, no_of_vms):
+    file_size = os.stat(filename).st_size
     with open(filename, 'rb') as trace:
-        one_percent_complete = round(num_lines / 100)
-        lines_read = 0
+        bytes_read = 0
         for item in csv.reader(trace, delimiter=','):
-            lines_read += 1
+
+            bytes_read += 37  # 37 bytes per line, hardcoded
+            percent = bytes_read*100 / file_size
+            sys.stdout.write('\r Percentage: ' + str(percent) + '%')
+            sys.stdout.flush()
+
             time_of_access = int(item[0])
             # hostname = item[1]
             disk_id = int(item[2])
@@ -35,12 +42,7 @@ def run(world, filename, num_lines, no_of_vms):
                 if block > 0:
                     block_address += 1
                 world.sim_read(time_of_access, disk_id, block_address)
-                # print lines_read
-            if(lines_read % one_percent_complete == 0):
-                print 100 * lines_read / num_lines, " percent complete"
-        # display_results(world.ssd)
         # pdb.set_trace()
-    # world.print_stats()
 
 
 def pre_process_file(filename):
