@@ -180,7 +180,4 @@ class Multilevel_weighted_lru(Cache):
         # pprint (dict(self.size_lookup))
 
     def print_stats(self):
-        print "\nMultilevel weighted LRU:\n"
-        print "Weight: ", self.weight, "\n"
-        pprint(dict(self.stats))
         hrc_curve.print_stats('Multi_weighted', self.stats)

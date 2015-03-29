@@ -12,6 +12,8 @@ import math
 # from multilevel_global_lru import Multilevel_global_lru
 from multilevel_weighted_lru import Multilevel_weighted_lru
 from timeit import Timer
+from datetime import datetime
+import hrc_curve
 # import pdb
 
 
@@ -38,7 +40,7 @@ def run(world, filename, num_lines, no_of_vms):
                 print 100 * lines_read / num_lines, " percent complete"
         # display_results(world.ssd)
         # pdb.set_trace()
-    world.print_stats()
+    # world.print_stats()
 
 
 def pre_process_file(filename):
@@ -67,17 +69,24 @@ def display_results(ssd):
 def main():
     filename = 'MSR/tiny_hm.csv'
     num_lines, no_of_vms, vm_ids = pre_process_file(filename)
-    print "vm ids are: ", vm_ids
-    print "Total no. of vms: ", no_of_vms
-    print "Total no. of lines: ", num_lines
+    metalog = {}
+    metalog['Current Time'] = str(datetime.now())
+    metalog['Input file'] = filename
+    metalog['VM count'] = no_of_vms
+    metalog['VM ids'] = vm_ids
+    metalog['Input file line count'] = num_lines
 
     # algorithms = [Global_lru, Static_lru, Weighted_lru]
     # algorithms = [Multilevel_global_lru, Global_lru]
     algorithms = [Multilevel_weighted_lru]
     for algorithm in algorithms:
+        # TODO (sunny) input vm ids instead of no_of_vms
         world = algorithm(no_of_vms)
         t = Timer(lambda: run(world, filename, num_lines, no_of_vms))
-        print "It took %s seconds to run" % (t.timeit(number=1))
+        metalog['Algorithm used'] = world.__class__.__name__
+        metalog['Run Time'] = ('%.2f' % t.timeit(number=1))
+        hrc_curve.print_stats(metalog, world.stats)
+        # print "It took %s seconds to run" % (t.timeit(number=1))
 
 if __name__ == '__main__':
     main()

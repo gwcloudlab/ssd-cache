@@ -99,23 +99,25 @@ def draw_figure(name, nested_dict):
     plt.clf()
 
 
-def print_stats(algo, stats):
-    stats_insight = defaultdict(lambda: defaultdict(lambda: 0))
-    for k, v in stats.iteritems():
+def print_stats(metadata, data):
+    stats = defaultdict(lambda: defaultdict(lambda: 0))
+    for k, v in data.iteritems():
         if k[2] == 'hits':
-            stats_insight[k[0]]['total_hits'] += v
+            stats[k[0]]['total_hits'] += v
         elif k[2] == 'miss':
-            stats_insight[k[0]]['total_misses'] += v
+            stats[k[0]]['total_misses'] += v
 
     with open(os.path.join('log', 'runs.log'), 'a') as out_file:
-        out_file.write('\n' + algo + '\n')
-        pprint(dict(stats), out_file)
-        for disk in stats_insight.iterkeys():
-            hitrate = (stats_insight[disk]['total_hits'] /
-                       (stats_insight[disk]['total_hits'] +
-                       stats_insight[disk]['total_misses']))
+        pprint(dict(metadata), out_file)
+        pprint(dict(data), out_file)
+
+        for disk in stats.iterkeys():
+            hitrate = (stats[disk]['total_hits'] /
+                       (stats[disk]['total_hits'] +
+                       stats[disk]['total_misses'])) * 100
+
             out_file.write("Hit rate of disk " +
                            str(disk) +
-                           'is ' +
-                           str(hitrate) +
+                           ' is: ' +
+                           str('%.2f' % hitrate) +
                            '\n')
