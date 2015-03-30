@@ -7,6 +7,7 @@ class Cache(object):
         # This will be the actual cache. It is a nested dict.
         # Default dict is the disk ID and the ordered dict are
         # the blocks inside the disk.
+        self.n_cache_layers = 2  # No of cache layers
         self.ssd = {}
         self.pcie_ssd = {}
         # Baseline values - min cache for each VM

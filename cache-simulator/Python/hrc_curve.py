@@ -62,16 +62,22 @@ def anneal(rd_cdf):
 
 
 def write_infile_sim_anneal(rd_cdf):
+    n_cdf_points = 50
+    n_cache_layers = 2
+    ssd_size = 1000000
+    pcie_size = 10000
     with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
-        out_file.write(' ' + str(len(rd_cdf)) + ' ' + '50' +
-                       ' ' + str(1) + '\n')
-        out_file.write(' ' + '1000000' + '\n')
+        out_file.write(' ' + str(len(rd_cdf)) +
+                       ' ' + str(n_cdf_points) +
+                       ' ' + str(n_cache_layers) + '\n')
+        out_file.write(' ' + str(ssd_size) + ' ' + str(pcie_size) + '\n')
         for disk in rd_cdf.keys():
             out_file.write(' ' + str(disk + 1) + '\n')
             for x, y in zip(rd_cdf[disk]['x_axis'], rd_cdf[disk]['y_axis']):
                 y *= 100  # sim anneal cpp doesn't work with float
                 out_file.write(' ' + str('%.2f' % y) +
-                               ' ' + str('%.2f' % x) + '\n')
+                               ' ' + str('%.2f' % x) +
+                               ' ' + str('%.2f' % (x/100)) + '\n')
 
 
 def draw_figure(name, nested_dict):
