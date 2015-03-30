@@ -69,14 +69,14 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'MSR/tiny_hm.csv'
+    filename = 'MSR/hm.csv'
     num_lines, no_of_vms, vm_ids = pre_process_file(filename)
     metalog = {}
     metalog['Current Time'] = str(datetime.now())
     metalog['Input file'] = filename
     metalog['VM count'] = no_of_vms
     metalog['VM ids'] = vm_ids
-    metalog['Input file line count'] = num_lines
+    metalog['file_size'] = os.stat(filename).st_size
 
     # algorithms = [Global_lru, Static_lru, Weighted_lru]
     # algorithms = [Multilevel_global_lru, Global_lru]
