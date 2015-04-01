@@ -19,7 +19,7 @@ import hrc_curve
 # import pdb
 
 
-def run(world, filename, num_lines, no_of_vms):
+def run(world, filename):
     file_size = os.stat(filename).st_size
     with open(filename, 'rb') as trace:
         bytes_read = 0
@@ -83,8 +83,8 @@ def main():
     algorithms = [Multilevel_weighted_lru]
     for algorithm in algorithms:
         # TODO (sunny) input vm ids instead of no_of_vms
-        world = algorithm(no_of_vms)
-        t = Timer(lambda: run(world, filename, num_lines, no_of_vms))
+        world = algorithm(vm_ids)
+        t = Timer(lambda: run(world, filename))
         metalog['Algorithm used'] = world.__class__.__name__
         metalog['Run Time'] = ('%.2f' % t.timeit(number=1))
         hrc_curve.print_stats(metalog, world.stats)

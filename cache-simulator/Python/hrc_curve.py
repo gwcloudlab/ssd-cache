@@ -13,7 +13,7 @@ def compute_HRC(rd_dict):
     rd_cdf = defaultdict(lambda: defaultdict(list))
 
     for disk in rd_dict.iterkeys():
-        sorted_array = np.sort(rd_dict[disk][:])
+        sorted_array = sorted(rd_dict[disk][:])
 
         # find the second largest element in the sorted array.
         # ex. sorted_array = [1,2,3,3,3,4,1000,1000,...]
@@ -29,13 +29,13 @@ def compute_HRC(rd_dict):
         x_vals = np.linspace(sorted_array[0], actual_largest, 50)  # hardcoded
         y_vals = ecdf(x_vals)
 
-        rd_cdf[disk]['x_axis'] = x_vals
-        rd_cdf[disk]['y_axis'] = y_vals
+        rd_cdf[disk]['x_axis'] = list(x_vals)
+        rd_cdf[disk]['y_axis'] = list(y_vals)
 
     return rd_cdf
 
 
-def anneal(rd_cdf):
+def anneal(rd_cdf, maxsize_pcie_ssd, maxsize_ssd):
 
     """
     Precondition:
@@ -49,35 +49,60 @@ def anneal(rd_cdf):
                 rd_cdf[disk]['y_axis'][-1] == 0):
             rd_cdf[disk]['x_axis'] = len(rd_cdf[disk]['x_axis'])*[0]
 
-    write_infile_sim_anneal(rd_cdf)
+    sa_solution, \
+        optimal_pcie_rd = calculate_optimal_space(rd_cdf, maxsize_pcie_ssd)
+
+    # Reordering data for second pass for ssd layer
+    # >>> hit_rate =  [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0]
+    # >>> rd = range(10)
+    # >>> optimal_hr = 4
+    # >>> hit_rate = hit_rate[optimal_hr:]
+    # >>> hit_rate
+    # [0.4, 0.5, 0.6, 0.7, 0.8, 1.0]
+    # >>> hit_rate.extend(optimal_hr * [hit_rate[-1]])
+    # >>> hit_rate
+    # [0.4, 0.5, 0.6, 0.7, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0]
+    # >>> rd
+    # [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    for disk, optimal_rd in zip(rd_cdf.keys(), sa_solution):
+        rd_cdf[disk]['y_axis'] = rd_cdf[disk]['y_axis'][optimal_rd:]
+        rd_cdf[disk]['y_axis'].extend(optimal_rd*[rd_cdf[disk]['y_axis'][-1]])
+
+    sa_solution, optimal_ssd_rd = calculate_optimal_space(rd_cdf, maxsize_ssd)
+
+    return (optimal_pcie_rd, optimal_ssd_rd)
+
+
+def calculate_optimal_space(rd_cdf, maxsize):
+    write_infile_for_sim_anneal(rd_cdf, maxsize)
     os.system("./sim_anneal")
     sa_solution = [line.strip() for line in open("sa_solution.txt", 'r')]
     sa_solution = map(int, sa_solution)
 
-    cdf_values = {}
+    optimal_space = {}
+    optimal_hr = {}
     for disk, optimal_rd in zip(rd_cdf.keys(), sa_solution):
-        cdf_values[disk] = rd_cdf[disk]['x_axis'][optimal_rd]
+        optimal_space[disk] = rd_cdf[disk]['x_axis'][optimal_rd]
+        optimal_hr[disk] = rd_cdf[disk]['y_axis'][optimal_rd]
 
-    return cdf_values
+    return (sa_solution, optimal_space)
 
 
-def write_infile_sim_anneal(rd_cdf):
+def write_infile_for_sim_anneal(rd_cdf, maxsize):
     n_cdf_points = 50
-    n_cache_layers = 2
-    ssd_size = 1000000
-    pcie_size = 10000
+    n_cache_layers = 1
     with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
         out_file.write(' ' + str(len(rd_cdf)) +
                        ' ' + str(n_cdf_points) +
-                       ' ' + str(n_cache_layers) + '\n')
-        out_file.write(' ' + str(ssd_size) + ' ' + str(pcie_size) + '\n')
+                       ' ' + str(n_cache_layers) + '\n' +
+                       ' ' + str(maxsize) + '\n')
         for disk in rd_cdf.keys():
             out_file.write(' ' + str(disk + 1) + '\n')
             for x, y in zip(rd_cdf[disk]['x_axis'], rd_cdf[disk]['y_axis']):
                 y *= 100  # sim anneal cpp doesn't work with float
                 out_file.write(' ' + str('%.2f' % y) +
-                               ' ' + str('%.2f' % x) +
-                               ' ' + str('%.2f' % (x/100)) + '\n')
+                               ' ' + str('%.2f' % x) + '\n')
 
 
 def draw_figure(name, nested_dict):
