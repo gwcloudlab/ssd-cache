@@ -197,13 +197,19 @@ class Multilevel_weighted_lru(Cache):
         if self.no_of_vms > len(ssd):
             self.pad_zeros(ssd)
 
+        # If workload is truly random just use previously used weights
+        if sum(pcie.values()) == 0 or sum(ssd.values()) == 0:
+            return
+
         # >>> ssd = {0: 2, 1: 3}
         # >>> maxsize = 10
         # >>> {k: v/sum(ssd.values())*maxsize for k, v in ssd.items()}
         # {0: 4.0, 1: 6.0}
+
         self.weight_pcie_ssd = {k: int(v / sum(pcie.values()) *
                                 self.maxsize_pcie_ssd)
                                 for k, v in pcie.items()}
+
         self.weight_ssd = {k: int(v / sum(ssd.values()) *
                            self.maxsize_ssd)
                            for k, v in ssd.items()}
