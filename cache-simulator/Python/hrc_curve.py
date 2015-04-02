@@ -141,6 +141,7 @@ def print_stats(metadata, data):
     with open(os.path.join('log', 'runs.log'), 'a') as out_file:
         pprint(dict(metadata), out_file)
         pprint(dict(data), out_file)
+        pprint(dict(stats), out_file)
 
         for disk in stats.iterkeys():
             hitrate = (stats[disk]['total_hits'] /
