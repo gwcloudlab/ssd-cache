@@ -66,8 +66,9 @@ class Multilevel_weighted_lru(Cache):
             self.calculate_weight(relative_weight_pcie_ssd,
                                   relative_weight_ssd)
 
-            print "\t pcie weight: ", self.weight_pcie_ssd,
-            print "\t ssd weight: ", self.weight_ssd
+            if __debug__:
+                print "\t pcie weight: ", self.weight_pcie_ssd,
+                print "\t ssd weight: ", self.weight_ssd
 
             # Calculate Reuse Intensity
             # self.calculate_reuse_intensity()
@@ -90,7 +91,7 @@ class Multilevel_weighted_lru(Cache):
     # @timing
     def handle_hit_miss_evict(self, disk_id, block_address):
         cache_layer = self.item_in_cache(disk_id, block_address)
-        if cache_layer is not None:
+        if cache_layer:
             self.stats[disk_id, cache_layer, 'hits'] += 1
             if cache_layer == 'pcie_ssd':
                 cache_contents = self.block_lookup[disk_id][
@@ -211,6 +212,3 @@ class Multilevel_weighted_lru(Cache):
         # pprint (dict(self.weight_ssd))
         # print "Actual size occupied: "
         # pprint (dict(self.size_lookup))
-
-    def print_stats(self):
-        hrc_curve.print_stats('Multi_weighted', self.stats)
