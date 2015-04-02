@@ -11,7 +11,7 @@ import os
 # from random_lru import Random_lru
 # from static_lru import Static_lru
 # from weighted_lru import Weighted_lru
-# from multilevel_global_lru import Multilevel_global_lru
+from multilevel_global_lru import Multilevel_global_lru
 from multilevel_weighted_lru import Multilevel_weighted_lru
 from timeit import Timer
 from datetime import datetime
@@ -74,13 +74,13 @@ def main():
     metalog = {}
     metalog['Current Time'] = str(datetime.now())
     metalog['Input file'] = filename
+    metalog['file_size (MB)'] = os.stat(filename).st_size / 10**6
     metalog['VM count'] = no_of_vms
     metalog['VM ids'] = vm_ids
-    metalog['file_size'] = os.stat(filename).st_size
 
     # algorithms = [Global_lru, Static_lru, Weighted_lru]
-    # algorithms = [Multilevel_global_lru, Global_lru]
-    algorithms = [Multilevel_weighted_lru]
+    # algorithms = [Multilevel_weighted_lru, Multilevel_global_lru]
+    algorithms = [Multilevel_global_lru]
     for algorithm in algorithms:
         # TODO (sunny) input vm ids instead of no_of_vms
         world = algorithm(vm_ids)

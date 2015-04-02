@@ -4,7 +4,6 @@ from statsmodels import api as sm
 import matplotlib.pyplot as plt
 from itertools import cycle
 import numpy as np
-from pprint import pprint
 import os
 
 
@@ -130,26 +129,19 @@ def draw_figure(name, nested_dict):
     plt.clf()
 
 
-def print_stats(metadata, data):
-    stats = defaultdict(lambda: defaultdict(lambda: 0))
-    for k, v in data.iteritems():
-        if k[2] == 'hits':
-            stats[k[0]]['total_hits'] += v
-        elif k[2] == 'miss':
-            stats[k[0]]['total_misses'] += v
+def print_stats(metadata, stats):
 
     with open(os.path.join('log', 'runs.log'), 'a') as out_file:
-        pprint(dict(metadata), out_file)
-        pprint(dict(data), out_file)
-        pprint(dict(stats), out_file)
+        out_file.write("---------------------------------------------\n")
+        out_file.write("Configuration:\n")
+        for k, v in metadata.iteritems():
+            out_file.write('\t' + str(k) + ':\t' + str(v) + '\n')
 
+        out_file.write("Statistics:\n")
         for disk in stats.iterkeys():
+            out_file.write('Disk ' + str(disk) + ' stats:\n')
+            for k, v in stats[disk].iteritems():
+                out_file.write('\t' + k + ':\t' + str(v) + '\n')
             hitrate = (stats[disk]['total_hits'] /
-                       (stats[disk]['total_hits'] +
-                       stats[disk]['total_misses'])) * 100
-
-            out_file.write("Hit rate of disk " +
-                           str(disk) +
-                           ' is: ' +
-                           str('%.2f' % hitrate) +
-                           '\n')
+                       stats[disk]['total_accesses']) * 100
+            out_file.write('\tHit Rate:\t' + str('%.2f' % hitrate) + '%\n')

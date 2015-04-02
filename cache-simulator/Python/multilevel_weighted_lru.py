@@ -48,6 +48,7 @@ class Multilevel_weighted_lru(Cache):
         reuse intensities
         """
         self.total_accesses[disk_id] += 1
+        self.stats[disk_id]['total_accesses'] += 1
         self.unique_blocks[disk_id].add(str(block_address))
         self.reuse_distance.calculate_rd(disk_id, block_address)
         self.handle_hit_miss_evict(disk_id, block_address)
@@ -92,7 +93,8 @@ class Multilevel_weighted_lru(Cache):
     def handle_hit_miss_evict(self, disk_id, block_address):
         cache_layer = self.item_in_cache(disk_id, block_address)
         if cache_layer:
-            self.stats[disk_id, cache_layer, 'hits'] += 1
+            self.stats[disk_id]['total_hits'] += 1
+            self.stats[disk_id][str(cache_layer) + '_hits'] += 1
             if cache_layer == 'pcie_ssd':
                 cache_contents = self.block_lookup[disk_id][
                                  cache_layer].pop(block_address)
@@ -113,7 +115,7 @@ class Multilevel_weighted_lru(Cache):
                                            removed_item['block_address'],
                                            removed_item['cache_contents'])
         else:
-            self.stats[disk_id, 'total', 'miss'] += 1
+            self.stats[disk_id]['total_miss'] += 1
             cache_layer = 'pcie_ssd'
             self.add_item_to_cache('pcie_ssd',
                                    disk_id,
@@ -155,7 +157,7 @@ class Multilevel_weighted_lru(Cache):
         else:
             cache_contents = self.ssd.pop((disk_id, block_address))
 
-        self.stats[disk_id, cache_layer, 'evicts'] += 1
+        self.stats[disk_id][str(cache_layer) + '_evicts'] += 1
         self.size_lookup[(disk_id, cache_layer)] -= 1
 
         return {'disk_id': disk_id,

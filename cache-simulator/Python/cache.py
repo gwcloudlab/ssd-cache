@@ -18,7 +18,7 @@ class Cache(object):
         self.weight = defaultdict(lambda: 0)  # For single layer cache
         self.weight_pcie_ssd = defaultdict(lambda: 0)
         self.weight_ssd = defaultdict(lambda: 0)
-        self.stats = defaultdict(lambda: 0)
+        self.stats = defaultdict(lambda: defaultdict(lambda: 0))
 
     def delete(self):
         self.resetCache()
