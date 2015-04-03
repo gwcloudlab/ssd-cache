@@ -69,26 +69,32 @@ def display_results(ssd):
 
 
 def main():
-    filename = 'MSR/hm.csv'
-    num_lines, no_of_vms, vm_ids = pre_process_file(filename)
-    metalog = {}
-    metalog['Current Time'] = str(datetime.now())
-    metalog['Input file'] = filename
-    metalog['file_size (MB)'] = os.stat(filename).st_size / 10**6
-    metalog['VM count'] = no_of_vms
-    metalog['VM ids'] = vm_ids
+    # all_files = ['hm.csv', 'mds.csv', 'prn.csv', 'proj.csv',
+    #              'prxy.csv', 'rsrch.csv', 'stg.csv', 'ts.csv',
+    #              'usr.csv', 'wdev.csv', 'web.csv', 'src.csv']
+    all_files = ['hm.csv']
+    for name in all_files:
+        print name
+        filename = os.path.join('MSR', name)
+        num_lines, no_of_vms, vm_ids = pre_process_file(filename)
+        metalog = {}
+        metalog['Current Time'] = str(datetime.now())
+        metalog['Input file'] = name
+        metalog['file_size (MB)'] = os.stat(filename).st_size / 10**6
+        metalog['VM count'] = no_of_vms
+        metalog['VM ids'] = vm_ids
 
-    # algorithms = [Global_lru, Static_lru, Weighted_lru]
-    # algorithms = [Multilevel_weighted_lru, Multilevel_global_lru]
-    algorithms = [Multilevel_global_lru]
-    for algorithm in algorithms:
-        # TODO (sunny) input vm ids instead of no_of_vms
-        world = algorithm(vm_ids)
-        t = Timer(lambda: run(world, filename))
-        metalog['Algorithm used'] = world.__class__.__name__
-        metalog['Run Time'] = ('%.2f' % t.timeit(number=1))
-        hrc_curve.print_stats(metalog, world.stats)
-        # print "It took %s seconds to run" % (t.timeit(number=1))
+        # algorithms = [Global_lru, Static_lru, Weighted_lru]
+        # algorithms = [Multilevel_weighted_lru, Multilevel_global_lru]
+        algorithms = [Multilevel_weighted_lru]
+        for algorithm in algorithms:
+            # TODO (sunny) input vm ids instead of no_of_vms
+            world = algorithm(vm_ids)
+            t = Timer(lambda: run(world, filename))
+            metalog['Algorithm used'] = world.__class__.__name__
+            metalog['Run Time'] = ('%.2f' % t.timeit(number=1))
+            hrc_curve.print_stats(metalog, world.stats)
+            # print "It took %s seconds to run" % (t.timeit(number=1))
 
 if __name__ == '__main__':
     main()
