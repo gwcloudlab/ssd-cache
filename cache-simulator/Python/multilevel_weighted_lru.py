@@ -28,9 +28,9 @@ class Multilevel_weighted_lru(Cache):
         default_pcie_weight = int(self.maxsize_pcie_ssd / self.no_of_vms)
         self.weight_pcie_ssd = defaultdict(lambda: default_pcie_weight)
         self.weight_ssd = defaultdict(lambda: default_ssd_weight)
-        for x in xrange(self.no_of_vms):
+        for vm in self.vm_ids:
             hyperll = HyperLogLog(0.01)
-            self.unique_blocks[x] = hyperll
+            self.unique_blocks[vm] = hyperll
 
     def timing(f):
         def wrap(*args):
