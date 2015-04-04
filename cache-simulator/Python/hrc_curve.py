@@ -25,7 +25,9 @@ def compute_HRC(rd_dict):
                 break
 
         ecdf = sm.distributions.ECDF(sorted_array)
-        x_vals = np.linspace(sorted_array[0], actual_largest, 50)  # hardcoded
+        # x_vals = np.linspace(sorted_array[0], actual_largest, 50)
+        x_vals = np.linspace(0, 10000, 100)  # For pcie disk
+        x_vals = np.append(x_vals, np.linspace(20000, 1000000, 100))  # ssd
         y_vals = ecdf(x_vals)
 
         rd_cdf[disk]['x_axis'] = list(x_vals)
@@ -89,7 +91,7 @@ def calculate_optimal_space(rd_cdf, maxsize):
 
 
 def write_infile_for_sim_anneal(rd_cdf, maxsize):
-    n_cdf_points = 50
+    n_cdf_points = 200
     n_cache_layers = 1
     with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
         out_file.write(' ' + str(len(rd_cdf)) +
@@ -135,13 +137,13 @@ def print_stats(metadata, stats):
         out_file.write("---------------------------------------------\n")
         out_file.write("Configuration:\n")
         for k, v in metadata.iteritems():
-            out_file.write('\t' + str(k) + ':\t' + str(v) + '\n')
+            out_file.write('\t' + str(k) + ':\t\t' + str(v) + '\n')
 
         out_file.write("Statistics:\n")
         for disk in stats.iterkeys():
             out_file.write('Disk ' + str(disk) + ' stats:\n')
             for k, v in stats[disk].iteritems():
-                out_file.write('\t' + k + ':\t' + str(v) + '\n')
+                out_file.write('\t' + k + ':\t\t' + str(v) + '\n')
             hitrate = (stats[disk]['total_hits'] /
                        stats[disk]['total_accesses']) * 100
-            out_file.write('\tHit Rate:\t' + str('%.2f' % hitrate) + '%\n')
+            out_file.write('\tHit Rate:\t' + str('%.2f' % hitrate) + ' %\n')
