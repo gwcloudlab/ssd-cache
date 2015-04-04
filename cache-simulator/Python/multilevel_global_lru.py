@@ -50,12 +50,14 @@ class Multilevel_global_lru(Cache):
             cache_contents = Cache_entry()
             self.block_lookup['pcie_ssd'][UUID] = cache_contents
             if len(self.block_lookup['pcie_ssd']) > self.maxsize_pcie_ssd:
+                self.stats[disk_id]['pcie_ssd_evicts'] += 1
                 cache_contents = self.block_lookup[
                                 'pcie_ssd'].popitem(last=False)
                 self.block_lookup['ssd'][UUID] = cache_contents
 
-            if len(self.block_lookup['ssd']) > self.maxsize_pcie_ssd:
-                cache_contents = self.block_lookup['ssd'].popitem(last=False)
+                if len(self.block_lookup['ssd']) > self.maxsize_ssd:
+                    self.stats[disk_id]['ssd_evicts'] += 1
+                    cache_contents = self.block_lookup['ssd'].popitem(last=False)
 
     def item_in_cache(self, UUID):
         for layer in self.block_lookup.iterkeys():
