@@ -1,33 +1,28 @@
-from cache_entry import Cache_entry
-import pprint
-from cache import Cache
 from collections import OrderedDict
+from cache_entry import Cache_entry
+from cache import Cache
 
 
 class Global_lru(Cache):
 
-    def __init__(self, no_of_vms):
+    def __init__(self, vm_ids):
         Cache.__init__(self)
-        self.no_of_vms = no_of_vms
+        self.vm_ids = vm_ids
+        self.no_of_vms = len(self.vm_ids)
         self.ssd = OrderedDict()
 
     def sim_read(self, time_of_access, disk_id, block_address):
         UUID = (disk_id, block_address)
+        self.stats[disk_id]['total_accesses'] += 1
         if (UUID in self.ssd):
             cache_contents = self.ssd.pop(UUID)
             self.ssd[UUID] = cache_contents
             self.ssd[UUID].set_lru()
-            self.stats[UUID[0], "hits"] += 1
+            self.stats[disk_id]["total_hits"] += 1
         else:
             new_cache_block = Cache_entry()
             if(len(self.ssd) >= self.maxsize):
                 self.ssd.popitem(last=False)
-                self.stats[UUID[0], "evictions"] += 1
+                self.stats[disk_id]["total_evictions"] += 1
             self.ssd[UUID] = new_cache_block
-            self.stats[UUID[0], "misses"] += 1
-
-    def print_stats(self):
-        print "\nGlobal LRU:\n"
-        print "Maxsize: ", self.maxsize, "\n"
-        pprint.pprint(dict(self.stats))
-        # print self.ssd.keys()
+            self.stats[disk_id]["total_misses"] += 1
