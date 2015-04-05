@@ -3,11 +3,13 @@ from collections import defaultdict
 from statsmodels import api as sm
 import matplotlib.pyplot as plt
 from itertools import cycle
+from cache import Cache
 import numpy as np
 import os
 
 
 def compute_HRC(rd_dict):
+    cache = Cache()
 
     rd_cdf = defaultdict(lambda: defaultdict(list))
 
@@ -26,8 +28,10 @@ def compute_HRC(rd_dict):
 
         ecdf = sm.distributions.ECDF(sorted_array)
         # x_vals = np.linspace(sorted_array[0], actual_largest, 50)
-        x_vals = np.linspace(0, 10000, 100)  # For pcie disk
-        x_vals = np.append(x_vals, np.linspace(20000, 1000000, 100))  # ssd
+        x_vals = np.linspace(0, cache.maxsize_pcie_ssd, 100)  # For pcie disk
+        x_vals = np.append(x_vals, np.linspace(cache.maxsize_pcie_ssd,
+                                               cache.maxsize_ssd,
+                                               100))
         y_vals = ecdf(x_vals)
 
         rd_cdf[disk]['x_axis'] = list(x_vals)
