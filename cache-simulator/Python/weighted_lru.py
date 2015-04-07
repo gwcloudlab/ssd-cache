@@ -8,6 +8,7 @@ from operator import itemgetter
 from collections import Counter, defaultdict, OrderedDict
 from numpy import linspace
 import hyperloglog
+from rank_mattson_rd import Rank_mattson_rd
 import time
 from timeit import Timer
 import random
@@ -15,15 +16,17 @@ import random
 
 class Weighted_lru(Cache):
 
-    def __init__(self, no_of_vms):
+    def __init__(self, vm_ids):
         Cache.__init__(self)
+	self.ssd = defaultdict(OrderedDict)
+	self.reuse_distance = Rank_mattson_rd()
         self.anneal = defaultdict()
         # Number of cache items currently owned by each disk
         self.counter = defaultdict(lambda: 0)
-        self.no_of_vms = no_of_vms
-        self.rd = defaultdict(defaultdict)  # Reuse distance
-        self.rd_blocks = defaultdict(list)
-        self.rd_size = defaultdict(lambda: 0)
+        self.no_of_vms = len(vm_ids)     
+	#self.rd = defaultdict(defaultdict)  # Reuse distance
+        #self.rd_blocks = defaultdict(list)
+        #self.rd_size = defaultdict(lambda: 0)
         self.ri = defaultdict()  # Reuse intensity
         self.time_interval = 500  # t_w from vCacheShare
         self.timeout = 0  # Sentinel
@@ -45,18 +48,21 @@ class Weighted_lru(Cache):
 
     def sim_read(self, time_of_access, disk_id, block_address):
         self.total_accesses[disk_id] += 1
+	self.stats[disk_id]["total_accesses"] += 1
         self.unique_blocks[disk_id].add(str(block_address))
-        self.calculate_reuse_distance(disk_id, block_address)
+        #self.calculate_reuse_distance(disk_id, block_address)
+	self.reuse_distance.calculate_rd(disk_id, block_address)
         if time_of_access > self.timeout:
             self.timeout = time_of_access + self.time_interval
             self.calculate_reuse_intensity()
-            self.construct_rd_cdf()
+	    rd_values = self.reuse_distance.get_rd_values()
+	    self.construct_rd_cdf(rd_values)
             self.calculate_weight()
         if (block_address in self.ssd[disk_id]):
             cache_contents = self.ssd[disk_id].pop(block_address)
             self.ssd[disk_id][block_address] = cache_contents
             self.ssd[disk_id][block_address].set_lru()
-            self.stats[disk_id, "hits"] += 1
+            self.stats[disk_id]["total_hits"] += 1
         else:
             new_cache_block = Cache_entry()
             # If the given disk has no space
@@ -68,11 +74,11 @@ class Weighted_lru(Cache):
                     print self.counter.values(), "\n", self.weight, "\n", id_to_evict
                     exit(1)
                 self.counter[id_to_evict] -= 1
-                self.stats[id_to_evict, "evictions"] += 1
+                self.stats[id_to_evict]["total_evictions"] += 1
             self.ssd[disk_id][block_address] = new_cache_block
             self.ssd[disk_id][block_address].set_lru()
             self.counter[disk_id] += 1
-            self.stats[disk_id, "misses"] += 1
+            self.stats[disk_id]["total_misses"] += 1
 
     def find_id_to_evict(self, disk_id, block_address):
         delta = Counter(self.counter) - Counter(self.weight)
@@ -98,9 +104,9 @@ class Weighted_lru(Cache):
                 self.ri[disk] = (self.total_accesses[disk]
                                  / (len(self.unique_blocks[disk])
                                     * self.time_interval))
-
+    """
     def calculate_reuse_distance(self, disk_id, block_address):
-        """
+       
         For each block, the RD is calculated by the number of unique blocks
         accessed between two consecutive accesses of the block .
         The initial value of a new block is set to 0 and if that block is
@@ -110,7 +116,7 @@ class Weighted_lru(Cache):
         position (which is always at the end of the list).
 
         self.rd[disk] = ordereddict{ block_address : RD value }
-        """
+        
 
         if block_address in self.rd[disk_id]:
             indx = self.rd_blocks[disk_id].index(block_address)
@@ -121,9 +127,9 @@ class Weighted_lru(Cache):
             self.rd_blocks[disk_id].append(block_address)
             self.rd[disk_id][block_address] = -1
             self.rd_size[disk_id] += 1
-
+    """
     @timing
-    def construct_rd_cdf(self):
+    def construct_rd_cdf(self, rd_dict):
         """
         The estimated hit ratio for each disk is calculated from it's RD by
         first constructing a list ("histogram") of all RD values for each disk,
@@ -141,17 +147,17 @@ class Weighted_lru(Cache):
         no_of_cdf_x_values = 50
         with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
             # Initialize all the header info for the out_file
-            out_file.write(" " + str(len(self.rd)) + " " + str(no_of_cdf_x_values) + " " + str(1) + "\n ")
+            out_file.write(" " + str(len(rd_dict)) + " " + str(no_of_cdf_x_values) + " " + str(1) + "\n ")
             out_file.write(str(self.maxsize) + "\n")
             # Set a flag to only run sa_anneal if cdf has data
             cdf_not_empty = False
-            for disk, block in self.rd.iteritems():
-                if sum(block.itervalues()) == 0:
+            for disk, block in rd_dict.iteritems():
+                if sum(block) == 0:
                     max_rd_value = 1.0
                 else:
                     cdf_not_empty = True
                     max_rd_value = self.maxsize
-                rd_array[disk] = sorted(block.itervalues())
+                rd_array[disk] = sorted(block)
                 ecdf = sm.distributions.ECDF(rd_array[disk])
                 cdf_x[disk] = linspace(min_rd_value, max_rd_value, no_of_cdf_x_values)# 50 xtics
                 cdf_y[disk] = ecdf(cdf_x[disk])
@@ -199,8 +205,3 @@ class Weighted_lru(Cache):
         self.weight = {k: int(v * self.maxsize) for k, v in self.priority.items()}
 
         print "Weight: ", self.weight, "\n"
-
-    def print_stats(self):
-        print "\nWeighted LRU:\n"
-        print "Weight: ", self.weight, "\n"
-        pprint(dict(self.stats))
