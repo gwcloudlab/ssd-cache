@@ -60,10 +60,11 @@ class Multilevel_weighted_lru(Cache):
             # Calculate RD and get annealed values
             rd_values = self.reuse_distance.get_rd_values()
             rd_cdf = hrc_curve.compute_HRC(rd_values)
-            relative_weight_pcie_ssd, \
-                relative_weight_ssd = hrc_curve.anneal(rd_cdf,
-                                                       self.maxsize_pcie_ssd,
-                                                       self.maxsize_ssd)
+            relative_weight_pcie_ssd, relative_weight_ssd = \
+                hrc_curve.multi_tier_anneal(rd_cdf,
+                                            self.maxsize_pcie_ssd,
+                                            self.maxsize_ssd)
+
             self.calculate_weight(relative_weight_pcie_ssd,
                                   relative_weight_ssd)
 

@@ -40,7 +40,7 @@ def compute_HRC(rd_dict):
     return rd_cdf
 
 
-def anneal(rd_cdf, maxsize_pcie_ssd, maxsize_ssd):
+def multi_tier_anneal(rd_cdf, maxsize_pcie_ssd, maxsize_ssd):
 
     """
     Precondition:
