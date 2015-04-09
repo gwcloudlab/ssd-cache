@@ -79,6 +79,26 @@ def multi_tier_anneal(rd_cdf, maxsize_pcie_ssd, maxsize_ssd):
     return (optimal_pcie_rd, optimal_ssd_rd)
 
 
+def single_tier_anneal(rd_cdf, maxsize_ssd):
+
+    """
+    Precondition:
+        The rd vaules should not be empty
+        The rd values should not have all 9999999 values's
+    Postcondition:
+        Optimal rd vaules for a given cache size
+    """
+    for disk in rd_cdf:
+        if (rd_cdf[disk]['x_axis'][0] > 99999999 or
+                rd_cdf[disk]['y_axis'][-1] == 0):
+            rd_cdf[disk]['x_axis'] = len(rd_cdf[disk]['x_axis'])*[0]
+
+    sa_solution, \
+        optimal_ssd_rd = calculate_optimal_space(rd_cdf, maxsize_ssd)
+
+    return optimal_ssd_rd
+
+
 def calculate_optimal_space(rd_cdf, maxsize):
     write_infile_for_sim_anneal(rd_cdf, maxsize)
     os.system("./sim_anneal")

@@ -20,7 +20,7 @@ class Weighted_lru(Cache):
         self.counter = defaultdict(lambda: 0)
         self.no_of_vms = len(vm_ids)
         self.ri = defaultdict()  # Reuse intensity
-        self.time_interval = 500  # t_w from vCacheShare
+        self.time_interval =1   # t_w from vCacheShare 500
         self.timeout = 0  # Sentinel
         self.total_accesses = defaultdict(lambda: 0)
         # Set to use RI values only to calculate priority
