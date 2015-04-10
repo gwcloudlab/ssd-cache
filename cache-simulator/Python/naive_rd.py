@@ -1,10 +1,9 @@
 from collections import defaultdict
-from collections import OrderedDict
 
 
 class Naive_rd():
     def __init__(self):
-        self.rd = dict(OrderedDict)
+        self.rd = defaultdict(lambda: defaultdict(list))
         self.rd_list = defaultdict(lambda: list)
         self.rd_size_lookup = defaultdict(lambda: 0)
 
@@ -16,7 +15,15 @@ class Naive_rd():
             no_of_entries = self.size_lookup[disk_id]
             rd_value = no_of_entries - indx + 1
         else:
-            rd_value = -1
+            rd_value = 999999999
             self.size_lookup[disk_id] += 1
 
-        self.rd[disk_id][block_address] = rd_value
+        self.rd[disk_id][block_address].append(rd_value)
+
+    def get_rd_values(self):
+        rd_array = defaultdict(list)
+        for disk in self.rd:
+            for block in self.rd[disk]:
+                rd_array[disk] += self.rd[disk][block]
+        self.rd.clear()
+        return rd_array
