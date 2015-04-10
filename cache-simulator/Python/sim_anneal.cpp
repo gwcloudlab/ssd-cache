@@ -527,7 +527,9 @@ MNode greedyAlgorithm() {
 
         nn++;
         if (nn > VALID_SOLUTION_ITERATIONS) {
-            printf("A valid solution might NOT exist for the instance! Quitting.");
+            // This doesn't really affect us. Nothing will be written to the ouput
+            // file and we will just use the previous results.
+            printf("A valid solution might NOT exist for the instance!");
             exit(0);
         }
     }

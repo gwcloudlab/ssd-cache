@@ -1,81 +1,66 @@
 from __future__ import division
 from cache_entry import Cache_entry
-import pprint
+from collections import defaultdict
+from collections import OrderedDict
 from cache import Cache
-from collections import OrderedDict, defaultdict
-import hyperloglog
+from time import time
+
 
 class Multilevel_global_lru(Cache):
 
-    def __init__(self, no_of_vms):
+    def __init__(self, vm_ids):
         Cache.__init__(self)
-        self.no_of_vms = no_of_vms
-        self.maxsize_pcie_ssd = 10000
-        self.maxsize_ssd = 100000
-        self.pcie_ssd = OrderedDict()
-        self.ssd = OrderedDict()
-        self.ri = defaultdict(lambda: -1)
-        self.total_accesses = defaultdict(lambda: 0)
-        self.unique_blocks = {}
-        for x in xrange(self.no_of_vms):
-            hyperll = hyperloglog.HyperLogLog(0.01)
-            self.unique_blocks[x] = hyperll
-        self.time_window = 500
-        self.timeout = 0
-        self.normalized_intensities = defaultdict(lambda: 0)
+        self.vm_ids = vm_ids
+        self.no_of_vms = len(vm_ids)
+        self.block_lookup = defaultdict(OrderedDict)
+
+    def timing(f):
+        def wrap(*args):
+            time1 = time()
+            ret = f(*args)
+            time2 = time()
+            print '%s took %0.3f ms' % (f.func_name, (time2-time1)*1000.0)
+            return ret
+        return wrap
 
     def sim_read(self, time_of_access, disk_id, block_address):
+        self.stats[disk_id]['total_accesses'] += 1
         UUID = (disk_id, block_address)
-        self.total_accesses[disk_id] += 1
-        self.unique_blocks[disk_id].add(str(block_address))
-        if time_of_access > self.timeout:
-            self.timeout = time_of_access + self.time_window
-            self.calculate_reuse_intensity()
-            self.total_accesses = defaultdict(lambda: 0)
-            for x in xrange(self.no_of_vms):
-                hyperll = hyperloglog.HyperLogLog(0.01)
-                self.unique_blocks[x] = hyperll
-            pprint.pprint(dict(self.normalized_intensities))
-
-        if self.normalized_intensities[disk_id] > 0.5:
-            if (UUID in self.pcie_ssd):
-                cache_contents = self.pcie_ssd.pop(UUID)
-                self.pcie_ssd[UUID] = cache_contents
-                self.pcie_ssd[UUID].set_lru()
-                self.stats[disk_id, "pcie_hits"] += 1
-            else:
-                new_cache_block = Cache_entry()
-                if len(self.pcie_ssd) >= self.maxsize_pcie_ssd:
-                    self.pcie_ssd.popitem(last=False)
-                    self.stats[disk_id, "pcie_evictions"] += 1
-                self.pcie_ssd[UUID] = new_cache_block
-                self.stats[disk_id, "pcie_misses"] += 1
+        cache_layer = self.item_in_cache(UUID)
+        if cache_layer:
+            # The item is a hit. So, regardless of which layer the item
+            # resides on, we pop it and add it to pcie.
+            self.stats[disk_id]['total_hits'] += 1
+            self.stats[disk_id][str(cache_layer) + '_hits'] += 1
+            cache_contents = self.block_lookup[cache_layer].pop(UUID)
+            self.block_lookup['pcie_ssd'][UUID] = cache_contents
+            if cache_layer == 'ssd':
+                # If the hit item is on ssd, we have already evicted it. So,
+                # add an evicted item from pcie to ssd and evict ssd's lru item
+                if len(self.block_lookup['pcie_ssd']) > self.maxsize_pcie_ssd:
+                    cache_contents = self.block_lookup[
+                                     'pcie_ssd'].popitem(last=False)
+                    self.block_lookup['ssd'][UUID] = cache_contents
         else:
-            if (UUID in self.ssd):
-                cache_contents = self.ssd.pop(UUID)
-                self.ssd[UUID] = cache_contents
-                self.ssd[UUID].set_lru()
-                self.stats[disk_id, "ssd_hits"] += 1
-            else:
-                new_cache_block = Cache_entry()
-                if len(self.ssd) >= self.maxsize_ssd:
-                    self.ssd.popitem(last=False)
-                    self.stats[disk_id, "ssd_evictions"] += 1
-                self.ssd[UUID] = new_cache_block
-                self.stats[disk_id, "ssd_misses"] += 1
+            # The item is a miss. So,
+            # (1) Add item to pcie
+            # (2) Evict lru item from pcie and add it to ssd
+            # (3) Evict the lru item from ssd.
+            self.stats[disk_id]['total_miss'] += 1
+            cache_contents = Cache_entry()
+            self.block_lookup['pcie_ssd'][UUID] = cache_contents
+            if len(self.block_lookup['pcie_ssd']) > self.maxsize_pcie_ssd:
+                self.stats[disk_id]['pcie_ssd_evicts'] += 1
+                cache_contents = self.block_lookup[
+                                'pcie_ssd'].popitem(last=False)
+                self.block_lookup['ssd'][UUID] = cache_contents
 
-    def calculate_reuse_intensity(self):
-        self.normalized_intensities = defaultdict(lambda: 0)
-        for x in self.unique_blocks.keys():
-            if len(self.unique_blocks[x]):
-                self.ri[x] = self.total_accesses[x] / (self.time_window * len(self.unique_blocks[x]))
-        max_value = max( self.ri.itervalues())
-        for key, value in self.ri.items():
-            self.normalized_intensities[key] = value / max_value
+                if len(self.block_lookup['ssd']) > self.maxsize_ssd:
+                    self.stats[disk_id]['ssd_evicts'] += 1
+                    cache_contents = self.block_lookup['ssd'].popitem(last=False)
 
-    def print_stats(self):
-        print "\nMultilevel Global LRU:\n"
-        print "Maxsize of pcie ssd: ", self.maxsize_pcie_ssd, "\n"
-        print "Maxsize of ssd: ", self.maxsize_ssd, "\n"
-        pprint.pprint(dict(self.stats))
-        # print self.ssd.keys()
+    def item_in_cache(self, UUID):
+        for layer in self.block_lookup.iterkeys():
+            if UUID in self.block_lookup[layer]:
+                return layer
+        return None

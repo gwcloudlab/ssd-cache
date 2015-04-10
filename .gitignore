@@ -1,5 +1,6 @@
 *.dat
 *.pyc
+*.pyo
 *.png
 *.txt
 *~

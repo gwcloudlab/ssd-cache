@@ -28,8 +28,8 @@ def run(algorithm, filename):
                 rd_values = algorithm.get_rd_values()
                 rd_cdf = hrc_curve.compute_HRC(rd_values)
                 annealed_values = hrc_curve.anneal(rd_cdf)
-                print annealed_values
-    hrc_curve.draw_figure('Rank Mattson', rd_cdf)
+                # print annealed_values
+    # hrc_curve.draw_figure('Rank Mattson', rd_cdf)
 
 
 def main():
