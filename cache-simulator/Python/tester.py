@@ -1,4 +1,5 @@
 from rank_mattson_rd import Rank_mattson_rd
+from naive_rd import Naive_rd
 from time import time
 import hrc_curve
 import csv
@@ -24,12 +25,12 @@ def run(algorithm, filename):
             disk_id = int(item[2])
             block_address = int(item[4])
             algorithm.calculate_rd(disk_id, block_address)
-            if line % 5000 == 0:
+            if line % 500 >= 1:
                 rd_values = algorithm.get_rd_values()
                 rd_cdf = hrc_curve.compute_HRC(rd_values)
-                annealed_values = hrc_curve.anneal(rd_cdf)
+                # annealed_values = hrc_curve.single_tier_anneal(rd_cdf)
                 # print annealed_values
-    # hrc_curve.draw_figure('Rank Mattson', rd_cdf)
+    hrc_curve.draw_figure('Rank Mattson', rd_cdf)
 
 
 def main():
@@ -43,7 +44,8 @@ def main():
         print name
         filename = os.path.join('MSR', name)
         rank_mattson = Rank_mattson_rd()
-        algorithms = [rank_mattson]
+        naive_rd = Naive_rd()
+        algorithms = [naive_rd, rank_mattson]
         for algorithm in algorithms:
             run(algorithm, filename)
 
