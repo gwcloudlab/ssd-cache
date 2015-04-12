@@ -26,5 +26,7 @@ class Naive_rd():
         for disk in self.rd:
             for block in self.rd[disk]:
                 rd_array[disk] += self.rd[disk][block]
-        self.rd.clear()
+        # self.rd.clear()
+        # self.rd_size_lookup.clear()
+        # self.rd_list.clear()
         return rd_array
