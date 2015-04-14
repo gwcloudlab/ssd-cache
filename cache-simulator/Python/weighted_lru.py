@@ -20,8 +20,8 @@ class Weighted_lru(Cache):
         self.counter = defaultdict(lambda: 0)
         self.no_of_vms = len(vm_ids)
         self.ri = defaultdict()  # Reuse intensity
-        self.time_interval =1   # t_w from vCacheShare 500
-        self.timeout = 0  # Sentinel
+        self.time_interval = 5000   # t_w from vCacheShare 500
+        self.timeout = self.time_interval * 5  # Sentinel
         self.total_accesses = defaultdict(lambda: 0)
         # Set to use RI values only to calculate priority
         self.ri_only_priority = False
@@ -86,7 +86,6 @@ class Weighted_lru(Cache):
             id_to_be_evicted = disk_id
         return id_to_be_evicted
 
-    @timing
     def calculate_reuse_intensity(self):
         """
         Reuse Intensity = S_{total} / (t_w * S_unique)
@@ -123,5 +122,5 @@ class Weighted_lru(Cache):
 
         self.weight = {k: int(v / sum(ssd.values()) * self.maxsize)
                        for k, v in ssd.items()}
-
-        print "Weight: ", self.weight, "\n"
+        if __debug__:
+            print "Weight: ", self.weight, "\n"

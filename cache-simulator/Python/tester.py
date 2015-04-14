@@ -55,7 +55,7 @@ def main():
         filename = os.path.join('MSR', name)
         rank_mattson = Rank_mattson_rd()
         naive_rd = Naive_rd()
-        algorithms = [naive_rd, rank_mattson]
+        algorithms = [rank_mattson]
         for algorithm in algorithms:
             run(algorithm, filename)
 
