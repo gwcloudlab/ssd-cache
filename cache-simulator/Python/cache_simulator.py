@@ -10,9 +10,9 @@ import os
 from global_lru import Global_lru
 # from random_lru import Random_lru
 # from static_lru import Static_lru
-# from weighted_lru import Weighted_lru
+from weighted_lru import Weighted_lru
 # from multilevel_global_lru import Multilevel_global_lru
-# from multilevel_weighted_lru import Multilevel_weighted_lru
+from multilevel_weighted_lru import Multilevel_weighted_lru
 from timeit import Timer
 from datetime import datetime
 import hrc_curve
@@ -72,7 +72,7 @@ def main():
     # all_files = ['hm.csv', 'mds.csv', 'prn.csv', 'proj.csv',
     #              'usr.csv', 'wdev.csv', 'web.csv', 'src.csv']
     # all_files = ['prxy.csv', 'rsrch.csv', 'stg.csv', 'ts.csv']
-    all_files = ['tiny.csv']
+    all_files = ['hm.csv']
     for name in all_files:
         print "\nInput trace file: ", name
         filename = os.path.join('MSR', name)
@@ -87,19 +87,13 @@ def main():
         # algorithms = [Global_lru, Static_lru, Weighted_lru]
         # algorithms = [Multilevel_weighted_lru, Multilevel_global_lru]
         # algorithms = [Multilevel_global_lru]
-        algorithms = [Global_lru]
+        algorithms = [Global_lru, Weighted_lru, Multilevel_weighted_lru]
         for algorithm in algorithms:
-            # csz = [62500, 100000, 125000, 250000, 500000,
-            #        625000, 750000, 875000, 1000000, 2000000]
-            csz = [1, 5, 10, 20, 100]
-            for cache_size in csz:
-                world = algorithm(vm_ids, cache_size)
-                t = Timer(lambda: run(world, filename))
-                metalog['Algorithm used'] = world.__class__.__name__
-                metalog['cache_size'] = cache_size
-                metalog['Run Time'] = ('%.2f' % t.timeit(number=1))
-                hrc_curve.print_stats(metalog, world.stats)
-            # print "It took %s seconds to run" % (t.timeit(number=1))
+            world = algorithm(vm_ids)
+            t = Timer(lambda: run(world, filename))
+            metalog['Algorithm used'] = world.__class__.__name__
+            metalog['Run Time'] = ('%.2f' % t.timeit(number=1))
+            hrc_curve.print_stats(metalog, world.stats)
 
 if __name__ == '__main__':
     main()
