@@ -1,0 +1,23 @@
+What is the problem with the current work?
+    HDD accesses are slow
+    Number of VMs in a host is every increasing
+        More contention
+        Each Vm has different workloads and different priorities
+
+What is our vision for the perfect world?
+    Little or no contention between VMs
+    Fine tune SLAs/ priorities -> maybe
+    As cheaply and efficiently as possible
+
+How does our system help with this vision?
+    We have different storage devices/systems that we can use such as SSD, PCIe SSD, NVM, etc.
+        Each storage has different cost and tradeoffs
+        (What do we want to use and why?)
+            - We are using the same cache space. So the hit ratio is going to be the same. What we get advantage of is the overall cache latency/utility (l1*h1 + l2*h2 + l3*(1-h1+h2))
+    We use a multi tier cache that spans several of those devices
+    Our Contributions:
+        Partition the cache to different VMs according to their workload and prority
+        Calculate HRCs in realtime efficiently using a variation of Mattson's algorithm
+        Use a multi constraint optimization algorithm that uses this HRC to allocate resources
+
+For a single cache layer, if the cache is very large, would addressing be a problem?
