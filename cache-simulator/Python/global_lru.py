@@ -5,10 +5,8 @@ from cache import Cache
 
 class Global_lru(Cache):
 
-    def __init__(self, vm_ids, cache_size):
+    def __init__(self, vm_ids):
         Cache.__init__(self)
-        self.maxsize = cache_size
-        print "\ncache size: ", self.maxsize
         self.vm_ids = vm_ids
         self.no_of_vms = len(self.vm_ids)
         self.ssd = OrderedDict()
