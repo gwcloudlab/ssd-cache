@@ -6,6 +6,7 @@ from itertools import cycle
 from cache import Cache
 import numpy as np
 import os
+import gc
 
 
 def compute_HRC(rd_dict):
@@ -150,9 +151,10 @@ def draw_figure(name, nested_dict):
     frame = legend.get_frame()
     frame.set_facecolor('0.90')
     plt.grid(True)
-    plt.show()
+    # plt.show()
     plt.savefig(name + '.png')
     plt.clf()
+    gc.collect()
 
 
 def print_stats(metadata, stats):
