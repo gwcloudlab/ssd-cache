@@ -51,7 +51,7 @@ def multi_tier_anneal(rd_cdf, maxsize_pcie_ssd, maxsize_ssd):
         Optimal rd vaules for a given cache size
     """
     for disk in rd_cdf:
-        if (rd_cdf[disk]['x_axis'][0] > 99999999 or
+        if (rd_cdf[disk]['x_axis'][0] > 9999999 or
                 rd_cdf[disk]['y_axis'][-1] == 0):
             rd_cdf[disk]['x_axis'] = len(rd_cdf[disk]['x_axis'])*[0]
 
