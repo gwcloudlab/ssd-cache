@@ -1,5 +1,5 @@
 from collections import defaultdict
-from hyperloglog import HyperLogLog
+from hll import HyperLogLog
 
 
 class CounterStack_rd():
