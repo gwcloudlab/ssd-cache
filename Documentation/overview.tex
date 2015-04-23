@@ -1,0 +1,27 @@
+\section{Overview}
+
+\subsection{Hit Ratio Curves}
+
+Hit ratio curves as a function of cache size gives us an estimate of the percentage of cache hits for any given cache size. A common method to calculate the HRC is by calculating the \emph{Reuse Distance} for every block request. A Reuse distance is the number of unique blocks between two consecutive accesses of a given block.
+
+RD calculation for every block is computationally intensive. For every block request, we need to track back to the point where that block has been accessed previously, and get the number of unique elements. A naive implementation of Mattson's algorithm takes O(n) space, where n is the size of the trace, and O(n.m) runtime where m is the number of unique blocks in the trace.
+
+Recently there have been some works[Shards, CounterStack] that calculate RD in sublinear time with constant space. CounterStack algorithm uses a counter for each of the block request, that holds the counter for the number of blocks requested after the counter for a particular block has been initialized. Comparing the counter of a block with other blocks give the RD of that block. The space is exponentially reduced by the usage of Hyperloglog data structure for each of the counters and by various other techniques such as downsampling.
+
+Shards on the other hand uses hashing to calculate the hash value of the block address and modulo the value by a user defined constant. If the resulting value is lesser than another user defined threshold, the block address is retained for calculating RD, if not, the block address is discarded. The authors of Shards claim that by just using the very minimal sample of uniformly distrubuted block addresses, they are able to calculate the RD values with very little error.
+
+In our work, we chose to use a variation of Mattson's Algorithm instead of adopting Shards or CounterStack for two simple reasons- First, our algorithm has a very small time window within which we calculate the RD of the blocks that have been requested. This means that our sample is already very small, in the order of tens of Kilobytes. Using Shards or CounterStack on such a small sample size is highly inefficient and leads to inaccuracies, as these methods work well with a larger sample size. Second, we were aiming to avoid serious computationally intesive calculations for calculating RD, as we would have to do this several hundreds or thousands of times depending on our time window.
+
+ Our variation of Mattson algorithm is shown in listingX. We maintain a global counter to count the number of block requests, and a hastable that stores the block adresses as the key and an array of indexes as it's values. This array will store the counter(s) at which the given block(key) was requested. For every block request, we look up our hashtable if the block address exists. If it does, we append the current counter value to the block address, else we insert the block address into the hastable with it's initial value as the counter's current value.
+
+ If we want to calculate the reuse distance, usually at the end of a timewindow, the hastable is iterated one key at a time and the pairwise-difference between each of the values of the keys gives us the approximate reuse distance. A cdf of all the pairwise-distances gives us an approximate HRC as a function of the reuse distance. \note{Need better explanation}
+
+ \subsection{Reuse Intensity}
+
+\emph{Reuse Intesity} is used as a measure to capture sudden bursts in hit ratio, as opposed to RD which is used to capture the overall trend of the hit ratio for a given time window. For certain web services, such as stock market providers, capturing quick bursts in trend is vital. To this end, $$ RI = \frac{unique blocks}{total blocks} $$ captures the sudden bursts in Hit Ratio. We calculate this value once every second. The overhead incurred by this calculation is very minimal compared to the other computations in our algorithm. So, calcualting this value in the background/parallely to other computations results in zero overhead. \note{is this statement true?}
+
+\subsection{Cache Utility model}
+
+\note{See github discussion}
+
+We run the optimazation algorithm in two parts/stages. Our solver uses simnulated Annealing algorithm. We split the hit ratio curve into two parts. The division point is the size of the FC. We find the optimal cache space for the VMs for FC. Once we solve for FC, we then solve the ``remaining" i.e. from size(FC) + 1 to size(SC + FC) as shown in figureX.

@@ -1,6 +1,18 @@
-Explain about the availability of different storage technologies
-What is host level cache
-    Existing systems
-        How cache partitioning is done
-        Background about HRCs
-        How HRCs are used
+% Explain about the availability of different storage technologies
+% What is host level cache
+%     Existing systems
+%        How cache partitioning is done
+%         Background about HRCs
+%         How HRCs are used
+
+There are numerous number of storage devices that can be used for caching such as SSD, PCIe SSD, NVM, etc. A common notion is that, the higher the performance of the device is in terms of latency and througput higher the cost.
+
+Hit Ratio Curves is an effective metric to predict cache allocations. HRC curves plotted as a funtion of a cache size tells us how much cache needs to be allocated for a VM to get a desired Hit Rate. The aggregate of all VMs' HRC can be used to predict the system wide hit ratio based on the cache size availability. Traditionally these HRC curves have been used to partition the cache[1..6 from vcacheshare bib]. The downside is these partitions were done manually by administrators, everytime they need to resize the partition. This method is very labor intensive, and in a lot of cases, cache partitioning would be done just one time, during the initial placement of the VM.
+
+There are several disadvantages to this type of static partitioning. First, this does not consider that the workload and the I/O access pattern can change over time. In the case where a VM has a high random workload, and should be stopped from using a cache, nothing can be done.
+
+Recently there have been works done for a dynamic cache partitioning [vCacheShare, ...] that effectively shows how a dynamic partition can increase the overall hit rate of a host.
+
+Calculating HRC curves have been studies over a long period of time. Mattson et. al. proposed a technique to effectively calculate the Hit Ratio Curve for a workload. Mattson constructed a histogram of \emph{reuse distances} of all the blocks accesses in a given workload to accurately calculate the HRC. A reuse distance of block is the number of unique block accesses between two consecutive references to that block. Once such an histogram is created with all the reuse distances, a CDF of the histogram would give us the hit ratio as a fuction of the resue distance, which is the cache size. As one can see, constructing such an histogram of reuse distances for all the blocks in a trace is computationally intensive and highly impractical to use it to construct an HRC dynamically at runtime. 
+
+A number of techiniques have been recently proposed [CounterStack, Shards] to compute such an HRC in sublinear time with a constant space. \note{Do we use one of those techniques or do we use our rank algorithm and explain why that is better}
