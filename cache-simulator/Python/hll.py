@@ -6,6 +6,7 @@ multisets in a single pass using little auxiliary memory
 
 import math
 from hashlib import sha1
+import mmh3
 from const import rawEstimateData, biasData, tresholdData
 
 
@@ -113,7 +114,8 @@ class HyperLogLog(object):
         # w = <x_{p}x_{p+1}..>
         # M[j] = max(M[j], rho(w))
 
-        x = long(sha1(value).hexdigest()[:16], 16)
+        # x = long(sha1(value).hexdigest()[:16], 16)
+        x = long(mmh3.hash64(value)[1])
         j = x & (self.m - 1)
         w = x >> self.p
 
