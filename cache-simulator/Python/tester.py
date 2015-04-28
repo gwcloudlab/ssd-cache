@@ -1,6 +1,7 @@
 from rank_mattson_rd import Rank_mattson_rd
 from counterstack_rd import CounterStack_rd
 from naive_rd import Naive_rd
+from fixsize_naive_rd import Fixsize_Naive_rd
 from time import time
 import hrc_curve
 import cProfile
@@ -59,9 +60,10 @@ def main():
         print name
         filename = os.path.join('MSR', name)
         # rank_mattson = Rank_mattson_rd()
-        counterstack = CounterStack_rd()
+        # counterstack = CounterStack_rd()
         # naive_rd = Naive_rd()
-        algorithms = [counterstack]
+        fixsize_naive = Fixsize_Naive_rd()
+        algorithms = [fixsize_naive]
         for algorithm in algorithms:
             run(algorithm, filename)
 
