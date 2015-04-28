@@ -23,7 +23,7 @@ class Basic_shards_rd():
         hash_value = hash_value % self.space
         if hash_value < self.threshold:
             self.mattson_rd(disk_id, block_address)
-        # self.balancetree_rd(disk_id, block_address)
+            # self.balancetree_rd(disk_id, block_address)
 
     def mattson_rd(self, disk_id, block_address):
         if block_address in self.rd[disk_id]:
