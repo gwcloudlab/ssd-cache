@@ -7,13 +7,14 @@
 %             Global cache is not efficient
 
 \section{Motivation}
-The motivation for this work are two-fold. First, we show why we need a smart partitioning algorithm. Second, We show why we need a multi layer cache
+The motivation for this work are two-fold. First, we show why we need a smart partitioning algorithm. Second, we show why we need a two-layer cache.
+
+\subsection{The case for smart partitioning}
 
 The need for partitioning the SSD cache has been studied in [vCacheShare, ...]. To illustrate we conduct a simple experiment where two VMs, namely VM1 and VM2, residing in the same host share a caching device. From figure XX, one can see that VM1 has a high random I/O with a very low hit ratio while VM2 has a low I/O but has a high hit rate. Figure YY, shows that despite VM2 could benefit largely from a cache, it has a very low space allocation in the cache, due to contention from VM1. From figure XX and YY, one can infer that contention can make a cache entirely unusable.
 
-The case for multi-tier cache:
-\begin{itemize}
-\item Some VMs have higher priority than others.
-\item Latency sensitive VMs can greatly benefit from a multi-tier cache.
-\item Interactive VMs that has a very low I/O, but a very high hit rate can be ``separated" and placed in the lowest latency cache for high reponsiveness.
-\end{itemize}
+\subsection{The case for two-layer cache}
+
+Each VM in a data center come with their own priority and Service Level Agreement. The priority if not explicitly mentioned, it can be inferred from the type of service they request at the time of their creation. VMs that run web services expect to have a very minimal latency as the response time is the most important criterion. On the other hand, VMs that run database servers, don't care about latency as much, but they want to optimize for throughput. It is the same with batch jobs, where the life time of the jobs is very short- jobs come in for a quick computation, and once they are done, there is a single reply with the result and they are done.
+
+Optimizing for each of the different kinds of VMs on a single physical machine is a very diffucult task. Instead, we take the latency as a common denominator and use it as a tuning parameter to meet the SLAs of the VMs. For instance, interactive VMs that has a very low I/O, but a very high hit rate can be ``separated" and placed in the lowest latency cache for high reponsiveness. 
