@@ -18,10 +18,33 @@ In our work, we chose to use a variation of Mattson's Algorithm instead of adopt
 
  \subsection{Reuse Intensity}
 
-\emph{Reuse Intesity} is used as a measure to capture sudden bursts in hit ratio, as opposed to RD which is used to capture the overall trend of the hit ratio for a given time window. For certain web services, such as stock market providers, capturing quick bursts in trend is vital. To this end, $$ RI = \frac{unique blocks}{total blocks} $$ captures the sudden bursts in Hit Ratio. We calculate this value once every second. The overhead incurred by this calculation is very minimal compared to the other computations in our algorithm. So, calcualting this value in the background/parallely to other computations results in zero overhead. \note{is this statement true?}
+\emph{Reuse Intesity} is used as a measure to capture sudden bursts in hit ratio, as opposed to RD which is used to capture the overall trend of the hit ratio for a given time window. For certain web services, such as stock market providers, capturing quick bursts in trend is vital. To this end, $$ RI = 1 - \frac{\text{\# unique blocks}}{\text{\# total blocks}} $$ captures the sudden bursts in Hit Ratio. The above equation indicates that, more the workload is random, the closer the value of $RI$ will be to 0. For instance, if there is only 9 unique blocks from a workload of 10 block requests, the value of $RI$ will be 0.1. On the other hand, if the workload has a lot of repeated requests to the same block, the value of $RI$ will be close to 1. The value of $RI$ once every 60 seconds, and can be tuned as a user parameter. The overhead incurred by this calculation is very minimal compared to the other computations in our algorithm. So, calcualting this value in the background/parallely to other computations results in zero overhead. \note{is this statement true?}
 
 \subsection{Cache Utility model}
 
-\note{See github discussion}
+
+$$ h_p(c_p)  = HR(c_p) $$
+$$ h_s(c_s)  = HR(c_s + c_p') - HR(c_p') $$
+
+where, \\ 
+$c_p$ is the cache size of pcie ssd, \\
+$c_s$ is the cache size of ssd, \\
+$h_s(c_s)$ is the hit rate of ssd as a function of its cache size, \\
+$h_p(c_p)$ is the hit rate of pcie ssd as a function of its cache size.  \\
+
+% $$ \alpha = \alpha_s + \alpha_p $$ % Do we ever need this equation?
+
+$$   \alpha_s = \frac{c_p}{c_s + c_p} $$ \# larger cache will have a smaller alpha
+$$   \alpha_p = 1-\alpha_s $$ \# smaller cache will have a larger alpha
+
+where $\alpha_s$ and $\alpha_p$ represents the ``benefit" a particular application/workload can get from the $RI$ values of ssd and pcie ssd caches respectively. Since RI indicates sudden bursts of block reuses, this cannot be represented well with RD. RD usually represents a large distribution of block reuse distances, but higher RI frequent smaller reuse distances. The most benefit from a higher RI can be obtained only with a cache layer that has the smallest size, because smaller caches can give more benefit if we can fit in blocks that has lower RDs but are repeated frequently.
+
+
+% Term 1 = cache utility from long term RD / hit rate estimate (less important for smaller cache) \\
+% Term 2 = cache utility from short term bursts of accesses that are easy or hard to cache (more important for smaller cache)
+
+$$ CU_p(c_p) = \frac{l_b}{l_p} \times h_p(c_p) + (\alpha_p \times RI) $$
+$$ CU_s(c_s) = \frac{l_b}{l_s} \times h_s(c_s) + (\alpha_s \times RI) $$
+$$ CU(C) = CU_p(c_p') + CU_s(c_s') + l_b (1 - h_p(c_p') + h_s(c_s')) $$ \note{Did not discuss about this yet.}
 
 We run the optimazation algorithm in two parts/stages. Our solver uses simnulated Annealing algorithm. We split the hit ratio curve into two parts. The division point is the size of the FC. We find the optimal cache space for the VMs for FC. Once we solve for FC, we then solve the ``remaining" i.e. from size(FC) + 1 to size(SC + FC) as shown in figureX.
