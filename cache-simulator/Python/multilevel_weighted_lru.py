@@ -4,6 +4,7 @@ from collections import defaultdict
 from collections import OrderedDict
 from hyperloglog import HyperLogLog
 from rank_mattson_rd import Rank_mattson_rd
+from counterstack_rd import CounterStack_rd
 # from pprint import pprint
 from cache import Cache
 from time import time
@@ -15,6 +16,7 @@ class Multilevel_weighted_lru(Cache):
     def __init__(self, vm_ids):
         Cache.__init__(self)
         self.reuse_distance = Rank_mattson_rd()
+        # self.reuse_distance = CounterStack_rd()
         self.vm_ids = vm_ids
         self.no_of_vms = len(vm_ids)
         self.time_interval = 5000
