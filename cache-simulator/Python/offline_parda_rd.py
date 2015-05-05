@@ -3,7 +3,7 @@ import ctypes
 import os
 import csv
 
-class Offline_Parda_rd():
+class Offline_parda_rd():
     def __init__(self):
         self.trace_size = defaultdict(lambda: 0)
         self.trace_list = defaultdict(list)
