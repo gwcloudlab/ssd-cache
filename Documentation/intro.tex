@@ -31,9 +31,7 @@ While the use of the host side flash caching can improve the speedup significant
 
 A perfect caching technique should avoid contention of I/O amongst the VMs, and should be able to guarentee fine tuned I/O performance for each of the VMs on any given host.
 
-In this work we present a simulated multi-tier flash cache based solution that uses multiple flash caches and partitions them dynamically in runtime based on the VMs' workload and priority.
-
-Our contributions are:
+In this work we present a simulated multi-tier flash cache based solution that uses multiple flash caches and partitions them dynamically in runtime based on the VMs' workload and priority. Our contributions are:
 \begin{itemize}
 \item Present a cache partitioning algorithm that partitions two-level caches simultaneously at runtime based on individual VMs' workload and priority.
 \item Calculate Hit Ratio Curves in runtime using a variation of Mattson's algorithm. Our variation runs faster and uses very low memory. (We need to quantify all these), and use a multi constraint optimization algorithm that uses the HRC to allocate resources among different caching devices.

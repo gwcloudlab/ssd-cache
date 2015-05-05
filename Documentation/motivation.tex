@@ -11,7 +11,15 @@ The motivation for this work are two-fold. First, we show why we need a smart pa
 
 \subsection{The case for smart partitioning}
 
-The need for partitioning the SSD cache has been studied in [vCacheShare, ...]. To illustrate we conduct a simple experiment where two VMs, namely VM1 and VM2, residing in the same host share a caching device. From figure XX, one can see that VM1 has a high random I/O with a very low hit ratio while VM2 has a low I/O but has a high hit rate. Figure YY, shows that despite VM2 could benefit largely from a cache, it has a very low space allocation in the cache, due to contention from VM1. From figure XX and YY, one can infer that contention can make a cache entirely unusable.
+\begin{figure}[tb]
+\setlength{\belowcaptionskip}{-15pt}
+\centering
+\includegraphics[width=3in]{figures/hitrate_fake}
+\caption{VMs competing for resources}
+\label{fig:compete}
+\end{figure}
+
+The need for partitioning the SSD cache has been studied in [vCacheShare, ...]. To illustrate we conduct a simple experiment where two VMs, namely VM1 and VM2, residing in the same host share a caching device. From figure XX, one can see that VM1 has a high random I/O with a very low hit ratio while VM2 has a low I/O but has a high hit rate. Figure~\ref{fig:compete} , shows that despite VM2 could benefit largely from a cache, it has a very low space allocation in the cache, due to contention from VM1. From figure XX and YY, one can infer that contention can make a cache entirely unusable.
 
 \subsection{The case for two-layer cache}
 
