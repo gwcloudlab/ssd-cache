@@ -33,7 +33,8 @@ A perfect caching technique should avoid contention of I/O amongst the VMs, and 
 
 In this work we present a simulated multi-tier flash cache based solution that uses multiple flash caches and partitions them dynamically in runtime based on the VMs' workload and priority. Our contributions are:
 \begin{itemize}
-\item Present a cache partitioning algorithm that partitions two-level caches simultaneously at runtime based on individual VMs' workload and priority.
-\item Calculate Hit Ratio Curves in runtime using a variation of Mattson's algorithm. Our variation runs faster and uses very low memory. (We need to quantify all these), and use a multi constraint optimization algorithm that uses the HRC to allocate resources among different caching devices.
-\item Simulate two different cache devices of varying throughput and latency. Using these caches with our algorithm we show that we could attain the maximum hit rate in most cases.\note{is it hit rate/cache utility/overall speedup/performance?}
+\item A cache partitioning algorithm that partitions two-level caches simultaneously at runtime based on individual VMs' workload and priority.
+\item A formulation of a cache utility model to classify the workload of individual VMs.
+\item An optimization formulation to maximize the efficiency and usage of the two-tier caching model.
+\item A simulation platform to experiment two different cache devices of varying throughput and latency.
 \end{itemize}
