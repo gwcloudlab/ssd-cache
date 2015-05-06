@@ -14,5 +14,5 @@ texzip:
 	tar czf paper.tgz *.tex *.bib *.cls Makefile
 
 clean:
-	rm paper.aux paper.bbl paper.blg paper.log figures/*eps-converted-to.pdf
+	rm paper.aux paper.bbl paper.blg paper.log
 

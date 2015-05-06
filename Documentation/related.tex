@@ -1,3 +1,14 @@
+% Related work section
+% Points to remember
+%
+%
+%
+%
+
 \section{Related Work}
 
 The most closest work to ours, from which we extended our work upon is by Meng et. al.~\cite{meng_vcacheshare:_2014}. Meng et. al. shows why host-side caching technique is necessary and develops a system \emph{vCacheShare}, a framework that dynamically allocates cache-space at runtime for virtualized environments. We extend their findings and present a case for the need of a two-tier cache and show through our simulation how a two tier can improve the throughput and latency.
+
+{\bf Single tier cache:} Studies have also been done to evaluate the feasibility of replacing the disks with flash storage~\cite{narayanan_migrating_2009}, and improving its resource utilization with minimal cost~\cite{tai_improving_2015}, but our work focusses on sharing the flash cache amongst different VMs based on their workload.
+
+{\bf Multi tier cache:} Multi tiered flash based storage systems have been recently studied~\cite{wang_balancing_2014, guerra_cost_2011, chen_hystor:_2011}. Hystor~\cite{chen_hystor:_2011} manages both SSDs and hard disk drives (HDDs) as one single block device.
