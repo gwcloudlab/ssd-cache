@@ -1,6 +1,7 @@
 from __future__ import division
 from collections import Counter, defaultdict, OrderedDict
 from rank_mattson_rd import Rank_mattson_rd
+from offline_parda_rd import Offline_parda_rd
 from cache_entry import Cache_entry
 from operator import itemgetter
 from cache import Cache
@@ -14,7 +15,8 @@ class Weighted_lru(Cache):
     def __init__(self, vm_ids):
         Cache.__init__(self)
         self.ssd = defaultdict(OrderedDict)
-        self.reuse_distance = Rank_mattson_rd()
+        self.reuse_distance = Offline_parda_rd()
+        # self.reuse_distance = Rank_mattson_rd()
         self.anneal = defaultdict()
         # Number of cache items currently owned by each disk
         self.counter = defaultdict(lambda: 0)
