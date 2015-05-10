@@ -56,7 +56,7 @@ void parda_print_histogram(char* outputFileName, const unsigned* histogram) {
   //freopen (outputFileName,"w",stdout);
   // Find the last non-zero bucket
   last_bucket = nbuckets-1;
-  while (histogram[last_bucket] < 1)
+  while (histogram[last_bucket] < 1&&last_bucket!=0)
     last_bucket--;
 
   for (i = 0; i <= last_bucket; i++){
