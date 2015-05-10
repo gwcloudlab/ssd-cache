@@ -29,7 +29,7 @@ class Offline_parda_rd():
                 self.trace_list[k] = []
         ll =ctypes.cdll.LoadLibrary
         for k,v in self.trace_files.iteritems():
-            print self.trace_size[k]
+            #print self.trace_size[k]
             lines=int(self.trace_size[k])
             #print lines
             parda=ll("./parda.so")
@@ -39,7 +39,8 @@ class Offline_parda_rd():
             #lib = ll("./test.so")  
             #result= lib.foo(100, 3)
         current_path=os.path.split(os.path.realpath(__file__))[0]
-        os.path.walk(current_path, self.loadresult, ()) 
+        os.path.walk(current_path, self.loadresult, ())
+        #print self.rd_array
         return self.rd_array
         
     def scan(self, arg, dirname, names):
