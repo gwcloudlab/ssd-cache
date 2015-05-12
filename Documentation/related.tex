@@ -1,14 +1,11 @@
-% Related work section
-% Points to remember
-%
-%
-%
-%
-
 \section{Related Work}
 
-The most closest work to ours, from which we extended our work upon is by Meng et. al.~\cite{meng_vcacheshare:_2014}. Meng et. al. shows why host-side caching technique is necessary and develops a system \emph{vCacheShare}, a framework that dynamically allocates cache-space at runtime for virtualized environments. We extend their findings and present a case for the need of a two-tier cache and show through our simulation how a two tier can improve the throughput and latency.
+The closest work to ours, from which we extend upon are by Meng et. al.~\cite{meng_vcacheshare:_2014} and Luo et. al~\cite{luo_s-cave:_2013}. Meng et. al.'s system \emph{vCacheShare} and \emph{S-Cave} dynamically allocates cache-space at runtime for virtualized environments. \emph{S-Cave} optimizes the cache based on identifying cache-friendly and unfriendly workloads while \emph{vCacheShare} monitors the changes in data locality optimizing for long term cache benefits and short term bursts in data reuse. We extend their findings and present a case for the need of a two-tier cache and show through our simulation how a two tier can improve the throughput and latency.
 
-{\bf Single tier cache:} Studies have also been done to evaluate the feasibility of replacing the disks with flash storage~\cite{narayanan_migrating_2009}, and improving its resource utilization with minimal cost~\cite{tai_improving_2015}, but our work focusses on sharing the flash cache amongst different VMs based on their workload.
+Studies have been done to evaluate the feasibility of replacing the disks with flash storage~\cite{narayanan_migrating_2009}, and improving its resource utilization with minimal cost~\cite{tai_improving_2015}, but our work focusses on sharing the flash cache amongst different VMs based on their workload. Intel's Turbo Memory~\cite{matthews_intel&reg;_2008} takes a similar approach and uses a flash device as an extension of main memory.
 
-{\bf Multi tier cache:} Multi tiered flash based storage systems have been recently studied~\cite{wang_balancing_2014, guerra_cost_2011, chen_hystor:_2011}. Hystor~\cite{chen_hystor:_2011} manages both SSDs and hard disk drives (HDDs) as one single block device.
+Multiple storage devices used in conjection to provide a flash based caching solution have been studied. Many of these consider the usage of Flash devices along with backup devices to provide a host based caching solution, but our work primarily varies with the following work in the sense that we can use multiple flash devices together for caching and can guarentee maximum utilization/performance benefits from all of them. 
+
+Multi tiered flash based storage systems have been recently studied~\cite{wang_balancing_2014, guerra_cost_2011, chen_hystor:_2011}. Wang et. al.~\cite{wang_balancing_2014} proposed a allocation model that identifies bottlenecked workloads per-device in a hybrid storage system. In this model, clients that are bottlenecked on the same storage device receive throughputs in proportion to their fair shares while allocation ratios among clients in different bottleneck sets are chosen to maximize overall system utilization.
+
+Hystor~\cite{chen_hystor:_2011} combines SSDs and HDDs and provisions it as a single block device. It separates the performance critical blocks and redirects the I/O requests for those blocks to the SSD and the rest to HDD, thus improving performance for the critcal data blocks. Similarly, Combo Drive~\cite{sanvido_combo_2009} also abstracts SSD and HDD as a single device, and internally redirects the I/O to each of the different devices. Fusion Drive~\cite{apple_fusion_2012} is a comercial implementaion of this model. Differentiated Storage Services~\cite{mesnier_differentiated_2011} classifies the block I/O request from the user-level based on system policies and matches blocks with storage devices.
