@@ -1,19 +1,31 @@
-#!/bin/sh
+#!/bin/bash
 
-# Run within the MSR/ dir. Run as MSR/pre-process.sh
-if [ -z "$1" ]
-then
-  echo "Provide a relative directory as input"
-  exit 1
-fi
+cd MSR/
+tar xf msr-cambridge1.tar
+tar xf msr-cambridge2.tar
 
-working_dir=$1
-working_dir="`pwd`/$1"
-folderName=$(basename $working_dir)
-cd $working_dir
-echo $folderName
-cat *.csv | parallel --pipe grep ",Read," > combined.csv
-# cat combined.csv | parallel --pipe grep ",Read," > combined_read_only.csv
-sort -n combined.csv > "$folderName"_reads_only.csv
-rm combined.csv
-mv "$folderName"_reads_only.csv ../
+cd MSR-Cambridge/
+gunzip *.gz
+
+# For all files except txt files
+for FILE in `ls -p -I '*.txt' | grep -v /`
+do
+    curr_file="${FILE%_*}"
+    mkdir -p $curr_file
+    mv "$curr_file"_*.csv $curr_file
+done | uniq
+
+echo "If you get an error like mv: cannot stat ‘hm_*.csv’: No such file or directory please igonre"
+echo "Need regex fix"
+
+for dir in */
+do
+    echo "Processing $dir"
+    cd $dir
+    folderName=$(basename $dir)
+    cat *.csv | parallel --no-notice --pipe grep ",Read," > combined.csv
+    sort -n combined.csv > "$folderName".csv
+    rm combined.csv
+    mv "$folderName".csv ../../
+    cd ../
+done                        
