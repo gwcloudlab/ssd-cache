@@ -212,11 +212,12 @@ void classical_tree_based_stackdist(char* inputFileName, long lines) {
     PTIME(t_input = ts - te;)
     char* outputFileName= strReplace(inputFileName, ".trace", "_hist.csv");
     parda_print_histogram(outputFileName, pdt->histogram);
-  PTIME(te = rtclock();)
-    PTIME(t_print = te - ts;)
+    //printf("seq\n");
+  //PTIME(te = rtclock();)
+    //PTIME(t_print = te - ts;)
     parda_free(pdt);
-  PTIME(ts = rtclock();)
-    PTIME(t_free = ts - te;)
+  //PTIME(ts = rtclock();)
+    //PTIME(t_free = ts - te;)
 
 #ifdef enable_timing
     //printf("seq\n");
@@ -292,9 +293,12 @@ void parda_input_with_textfilepointer(FILE* fp, program_data_t* pdt, long begin,
 }
 
 void parda_free(program_data_t* pdt) {
+
   narray_free(pdt->ga);
+
   //g_hash_table_foreach(pdt->gh, free_key_value, NULL);
   g_hash_table_destroy(pdt->gh);
+
   free(pdt->histogram);
   freetree(pdt->root);
 }

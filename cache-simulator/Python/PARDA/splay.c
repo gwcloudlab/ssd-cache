@@ -1,4 +1,5 @@
 #include "splay.h"
+#include <assert.h>
 /*
            An implementation of top-down splaying with sizes
              D. Sleator <sleator@cs.cmu.edu>, January 1994.
@@ -200,13 +201,53 @@ Tree *find_rank(T r, Tree *t) {
 	}
     }
 }
+
+/*
 void freetree(Tree* t)
 {
     if(t==NULL) return;
     freetree(t->right);
     freetree(t->left);
+    printf("%d\n", t);
     free(t);
 }
+*/
+
+void freetree(Tree* t)
+{
+	//inital <Tree*> stack
+	Tree * stack[2000000]={NULL};
+	int i;
+    for (i=0; i<2000000; i++) {stack[i]=NULL;}
+    int stack_top= -1;
+	//stack.push(t);
+	stack_top += 1;  
+    stack[stack_top] = t;
+	//while(!stack.empty())
+    while(stack_top != -1)
+	{
+		//Tree* topNode = stack.top();
+		Tree* topNode=stack[stack_top];	
+		//stack.pop();
+		//printf("1: %d, %d\n", stack_top, topNode);
+		stack[stack_top]=NULL;
+		stack_top -= 1;
+
+		if ( topNode->left!=NULL ){
+			//stack.push(topNode->left);
+			stack_top += 1;  
+            stack[stack_top] = topNode->left;}
+
+		if ( topNode->right!=NULL ){
+			//stack.push(topNode->right);
+			stack_top += 1;  
+            stack[stack_top] = topNode->right;}
+
+		//delete topNode;
+		free(topNode);
+	}
+}
+
 void printtree(Tree * t, int d) {
     //printf("%p\n",t);
     int i;

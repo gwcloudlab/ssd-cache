@@ -47,7 +47,7 @@ traces.
 #endif
 
 //#define DEFAULT_NBUCKETS 100000
-#define DEFAULT_NBUCKETS 100000000
+#define DEFAULT_NBUCKETS 2000000
 #define B_OVFL   nbuckets
 #define B_INF    nbuckets+1
 #define SLEN 20
