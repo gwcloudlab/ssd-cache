@@ -11,15 +11,29 @@ class Offline_parda_rd():
         self.rd_array = defaultdict(list)
         current_path=os.path.split(os.path.realpath(__file__))[0]
         os.path.walk(current_path, self.scan, ())
+        self.counter = defaultdict(lambda: 0)
         
     def calculate_rd(self, disk_id, block_address):
+        threshold=10000
         self.trace_list[disk_id].append(block_address)
+        self.counter[disk_id] += 1
         if disk_id not in self.trace_files:
             self.trace_files[disk_id]=str(disk_id)+".trace"
+            
+        if(self.counter[disk_id] == threshold):
+            #print self.trace_size              
+            #write block_address into the file (*.trace) with parda input format, and "*" means disk_id.
+            with open(os.path.join(self.trace_files[disk_id]), 'a') as out_file:
+                for block_address in self.trace_list[disk_id]:
+                    out_file.write(str(block_address) + '\n')
+                    self.trace_size[disk_id]+= 1
+                self.trace_list[disk_id] = []
+                #print self.trace_list[disk_id]
+                self.counter[disk_id] = 0
 
     def get_rd_values(self):
         self.rd_array.clear()
-        for k, v in self.trace_files.iteritems():    #k means disk_id, v means trace_file.
+        for (k, v) in self.trace_files.items():    #k means disk_id, v means trace_file.
             if len (self.trace_list[k]):
                 #write block_address into the file (*.trace) with parda input format, and "*" means disk_id.
                 with open(os.path.join(v), 'a') as out_file:
@@ -27,17 +41,13 @@ class Offline_parda_rd():
                         out_file.write(str(block_address) + '\n')
                         self.trace_size[k]+= 1
                 self.trace_list[k] = []
+                self.counter[k] = 0
         ll =ctypes.cdll.LoadLibrary
-        for k,v in self.trace_files.iteritems():
+        for (k, v) in self.trace_files.items():
             #print self.trace_size[k]
             lines=int(self.trace_size[k])
-            #print lines
             parda=ll("./parda.so")
-            #print v
-            #print lines
             parda.classical_tree_based_stackdist(v, lines)  #invoke the parda algorithm.
-            #lib = ll("./test.so")  
-            #result= lib.foo(100, 3)
         current_path=os.path.split(os.path.realpath(__file__))[0]
         os.path.walk(current_path, self.loadresult, ())
         #print self.rd_array
