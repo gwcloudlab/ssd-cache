@@ -1,12 +1,12 @@
 from collections import defaultdict
 
-class Fixsize_Naive_rd():
-    def __init__(self):
+class Fixsize_naive_rd():
+    def __init__(self, max_cache_size):
         self.rd = defaultdict(lambda: defaultdict(list))
         self.rd_list = defaultdict(list)
         self.rd_dict = defaultdict(defaultdict)
         self.rd_size_lookup = defaultdict(lambda: 0)
-        self.rd_size_max = {0:100000, 1:100000, 2:100000, 3:100000} # max cache size for each disc
+        self.rd_size_max = max_cache_size #{0:100000, 1:100000, 2:100000, 3:100000} # max cache size for each disc
 
     def calculate_rd(self, disk_id, block_address):
         if block_address in self.rd_dict[disk_id]:
