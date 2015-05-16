@@ -1,11 +1,11 @@
 #!/bin/bash
 
 cd MSR/
-tar xf msr-cambridge1.tar
-tar xf msr-cambridge2.tar
+# tar xf msr-cambridge1.tar
+# tar xf msr-cambridge2.tar
 
 cd MSR-Cambridge/
-gunzip *.gz
+# gunzip *.gz
 
 # For all files except txt files
 for FILE in `ls -p -I '*.txt' | grep -v /`
@@ -24,8 +24,12 @@ do
     cd $dir
     folderName=$(basename $dir)
     cat *.csv | parallel --no-notice --pipe grep ",Read," > combined.csv
-    sort -n combined.csv > "$folderName".csv
+    sort -n combined.csv > "$folderName".tmp
     rm combined.csv
-    mv "$folderName".csv ../../
+    mv "$folderName".tmp ../../
     cd ../
 done                        
+cd ../../
+python pre_process.py MSR/*.tmp
+
+rm MSR/*.tmp
