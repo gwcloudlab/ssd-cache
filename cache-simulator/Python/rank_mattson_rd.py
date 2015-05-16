@@ -19,5 +19,5 @@ class Rank_mattson_rd():
                     for idx in xrange(len(block_rd) - 1):
                         rd_array[disk].append(block_rd[idx+1] - block_rd[idx])
                 rd_array[disk].append(99999999)
-        # self.rd.clear()
+        self.rd.clear()
         return rd_array

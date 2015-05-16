@@ -12,16 +12,16 @@ class Offline_parda_rd():
         current_path=os.path.split(os.path.realpath(__file__))[0]
         os.path.walk(current_path, self.scan, ())
         self.counter = defaultdict(lambda: 0)
-        
+
     def calculate_rd(self, disk_id, block_address):
         threshold=10000
         self.trace_list[disk_id].append(block_address)
         self.counter[disk_id] += 1
         if disk_id not in self.trace_files:
             self.trace_files[disk_id]=str(disk_id)+".trace"
-            
+
         if(self.counter[disk_id] == threshold):
-            #print self.trace_size              
+            #print self.trace_size
             #write block_address into the file (*.trace) with parda input format, and "*" means disk_id.
             with open(os.path.join(self.trace_files[disk_id]), 'a') as out_file:
                 for block_address in self.trace_list[disk_id]:
