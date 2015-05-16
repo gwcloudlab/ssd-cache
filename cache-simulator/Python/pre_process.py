@@ -13,12 +13,12 @@ for arg in sys.argv[1:]:
     filename = arg
     print filename
     name, ext = filename.split('.')
-    output_filename = name + "_sorted." + ext
+    output_filename = name + ".csv"
 
-    with open(os.path.join("MSR", output_filename), "wb") as wr:
+    with open(output_filename, "wb") as wr:
         sentinal = 0
         writr = csv.writer(wr, delimiter=',')
-        with open(os.path.join("MSR", filename), "rb") as trace:
+        with open(filename, "rb") as trace:
             for item in csv.reader(trace, delimiter=','):
                 if sentinal == 0:
                     sentinal = WindowsTickToUnixSeconds(int(item[0]))
