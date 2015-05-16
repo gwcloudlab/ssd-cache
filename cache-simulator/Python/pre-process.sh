@@ -1,11 +1,11 @@
 #!/bin/bash
 
 cd MSR/
-# tar xf msr-cambridge1.tar
-# tar xf msr-cambridge2.tar
+tar xf msr-cambridge1.tar
+tar xf msr-cambridge2.tar
 
 cd MSR-Cambridge/
-# gunzip *.gz
+gunzip *.gz
 
 # For all files except txt files
 for FILE in `ls -p -I '*.txt' | grep -v /`

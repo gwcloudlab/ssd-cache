@@ -3,8 +3,8 @@ from cache_entry import Cache_entry
 from collections import defaultdict
 from collections import OrderedDict
 from hyperloglog import HyperLogLog
-from rank_mattson_rd import Rank_mattson_rd
-from counterstack_rd import CounterStack_rd
+# from rank_mattson_rd import Rank_mattson_rd
+# from counterstack_rd import CounterStack_rd
 from offline_parda_rd import Offline_parda_rd
 # from pprint import pprint
 from cache import Cache
@@ -72,21 +72,22 @@ class Multilevel_weighted_lru(Cache):
             self.calculate_weight(relative_weight_pcie_ssd,
                                   relative_weight_ssd)
 
-            if __debug__:
-                print "\t pcie weight: ", self.weight_pcie_ssd,
-                print "\t ssd weight: ", self.weight_ssd
-
             # Calculate Reuse Intensity
             # self.calculate_reuse_intensity()
 
+            if __debug__:
+                print "\t pcie weight: ", self.weight_pcie_ssd,
+                print "\t ssd weight: ", self.weight_ssd
+                # print "\t RI: ", self.ri
+
     def calculate_reuse_intensity(self):
-        for disk in xrange(self.no_of_vms):
+        for disk in self.vm_ids:
             unique_element_count = len(self.unique_blocks[disk])
             if unique_element_count == 0:
                 self.ri[disk] = 0
             else:
-                self.ri[disk] = (self.total_accesses[disk] /
-                                 (unique_element_count) * self.time_interval)
+                self.ri[disk] = 1 - (self.total_accesses[disk] /
+                                     unique_element_count)
 
     def item_in_cache(self, disk_id, block_address):
         for layer in self.block_lookup[disk_id].keys():
@@ -104,7 +105,7 @@ class Multilevel_weighted_lru(Cache):
                 cache_contents = self.block_lookup[disk_id][
                                  cache_layer].pop(block_address)
                 self.block_lookup[disk_id][
-                                  cache_layer][block_address] = cache_contents
+                                 cache_layer][block_address] = cache_contents
             else:
                 removed_item = self.remove_item_from_cache('ssd',
                                                            disk_id,
