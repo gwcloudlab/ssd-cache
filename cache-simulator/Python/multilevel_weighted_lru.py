@@ -3,6 +3,7 @@ from cache_entry import Cache_entry
 from collections import defaultdict
 from collections import OrderedDict
 from hyperloglog import HyperLogLog
+from datetime import datetime
 # from rank_mattson_rd import Rank_mattson_rd
 # from counterstack_rd import CounterStack_rd
 from offline_parda_rd import Offline_parda_rd
@@ -21,8 +22,9 @@ class Multilevel_weighted_lru(Cache):
         # self.reuse_distance = CounterStack_rd()
         self.vm_ids = vm_ids
         self.no_of_vms = len(vm_ids)
-        self.time_interval = 5000
-        self.timeout = self.time_interval * 5
+        self.interval = 0
+        self.time_interval = 3600
+        self.timeout = 0
         self.ri = defaultdict()
         self.block_lookup = defaultdict(lambda: defaultdict(OrderedDict))
         self.size_lookup = defaultdict(lambda: 0)
@@ -35,6 +37,10 @@ class Multilevel_weighted_lru(Cache):
         for vm in self.vm_ids:
             hyperll = HyperLogLog(0.01)
             self.unique_blocks[vm] = hyperll
+        if __debug__:
+            with open('log/detailed_stats.log', 'w') as out_file:
+                out_file.write('Algorithm,Multi-level-weighted-LRU\n')
+                out_file.write('CurrentTime,' + str(datetime.now()) + '\n')
 
     def timing(f):
         def wrap(*args):
@@ -58,6 +64,7 @@ class Multilevel_weighted_lru(Cache):
         self.handle_hit_miss_evict(disk_id, block_address)
 
         if time_of_access > self.timeout:
+            self.interval += 1
             # Increase the time count
             self.timeout = time_of_access + self.time_interval
 
@@ -73,12 +80,16 @@ class Multilevel_weighted_lru(Cache):
                                   relative_weight_ssd)
 
             # Calculate Reuse Intensity
-            # self.calculate_reuse_intensity()
+            self.calculate_reuse_intensity()
 
             if __debug__:
-                print "\t pcie weight: ", self.weight_pcie_ssd,
-                print "\t ssd weight: ", self.weight_ssd
-                # print "\t RI: ", self.ri
+                with open('log/detailed_stats.log', 'a') as out_file:
+                    out_file.write("Interval," + str(self.interval) + '\n')
+                    out_file.write("pcie_weight," + str(self.weight_pcie_ssd) + '\n')
+                    out_file.write("ssd_weight," + str(self.weight_ssd) + '\n')
+                    out_file.write("reuse_intensity," + str(self.ri) + '\n')
+                    hrc_curve.print_per_interval_stats(self.stats)
+                    # print "\t RI: ", self.ri
 
     def calculate_reuse_intensity(self):
         for disk in self.vm_ids:
@@ -86,8 +97,8 @@ class Multilevel_weighted_lru(Cache):
             if unique_element_count == 0:
                 self.ri[disk] = 0
             else:
-                self.ri[disk] = 1 - (self.total_accesses[disk] /
-                                     unique_element_count)
+                self.ri[disk] = 1 - (unique_element_count /
+                                     self.total_accesses[disk])
 
     def item_in_cache(self, disk_id, block_address):
         for layer in self.block_lookup[disk_id].keys():
@@ -103,7 +114,7 @@ class Multilevel_weighted_lru(Cache):
             self.stats[disk_id][str(cache_layer) + '_hits'] += 1
             if cache_layer == 'pcie_ssd':
                 cache_contents = self.block_lookup[disk_id][
-                                 cache_layer].pop(block_address)
+                                   cache_layer].pop(block_address)
                 self.block_lookup[disk_id][
                                  cache_layer][block_address] = cache_contents
             else:
