@@ -9,6 +9,7 @@
 *.trace
 MSR/
 log/
+traces/
 .idea/
 .DS_Store
 
