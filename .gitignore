@@ -4,6 +4,9 @@
 *.txt
 *~
 *.backup
+*.so
+*.csv
+*.trace
 MSR/
 log/
 .idea/
