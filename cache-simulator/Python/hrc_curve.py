@@ -156,12 +156,28 @@ def draw_figure(name, nested_dict):
     plt.clf()
     gc.collect()
 
+def print_per_interval_stats(stats):
+
+    with open(os.path.join('log', 'detailed_stats.log'), 'a') as out_file:
+        for disk in stats.iterkeys():
+            out_file.write('Disk,' + str(disk) + '\n')
+            for k, v in stats[disk].iteritems():
+                out_file.write(k + ',' + str(v) + '\n')
+            hitrate = (stats[disk]['total_hits'] /
+                       stats[disk]['total_accesses']) * 100
+            out_file.write('Hit Rate,' + str('%.2f' % hitrate) + '\n')
 
 def print_stats(metadata, stats):
 
+    cache = Cache()
     with open(os.path.join('log', 'runs.log'), 'a') as out_file:
         out_file.write("---------------------------------------------\n")
+        out_file.write('\tSSD size:\t\t' + str(cache.maxsize_ssd) + '\n')
+        out_file.write('\tPCIe SSD size:\t\t' + str(cache.maxsize_pcie_ssd) + '\n')
+        out_file.write("---------------------------------------------\n")
         out_file.write("Configuration:\n")
+        out_file.write("---------------------------------------------\n")
+
         for k, v in metadata.iteritems():
             out_file.write('\t' + str(k) + ':\t\t' + str(v) + '\n')
 
