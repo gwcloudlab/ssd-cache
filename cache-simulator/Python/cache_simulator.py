@@ -12,7 +12,7 @@ import os
 # from random_lru import Random_lru
 # from static_lru import Static_lru
 # from weighted_lru import Weighted_lru
-# from multilevel_global_lru import Multilevel_global_lru
+from multilevel_global_lru import Multilevel_global_lru
 from multilevel_weighted_lru import Multilevel_weighted_lru
 from timeit import Timer
 from datetime import datetime
@@ -73,7 +73,7 @@ def main():
     # all_files = ['hm.csv', 'mds.csv', 'prn.csv', 'proj.csv',
     #              'usr.csv', 'wdev.csv', 'web.csv', 'src.csv']
     # all_files = ['prxy.csv', 'rsrch.csv', 'stg.csv', 'ts.csv']
-    all_files = ['hm.csv']
+    all_files = ['tiny_web.csv']
     for name in all_files:
         print "\nInput trace file: ", name
         filename = os.path.join('MSR', name)
@@ -86,8 +86,8 @@ def main():
         metalog['VM ids'] = vm_ids
 
         # algorithms = [Global_lru, Static_lru, Weighted_lru]
-        # algorithms = [Multilevel_weighted_lru, Multilevel_global_lru]
-        algorithms = [Multilevel_weighted_lru]
+        algorithms = [Multilevel_weighted_lru, Multilevel_global_lru]
+        # algorithms = [Multilevel_weighted_lru]
         # algorithms = [Global_lru, Weighted_lru, Multilevel_weighted_lru]
         for algorithm in algorithms:
             gc.collect()
