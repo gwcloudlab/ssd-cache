@@ -202,23 +202,22 @@ Tree *find_rank(T r, Tree *t) {
     }
 }
 
-/*
+
 void freetree(Tree* t)
 {
     if(t==NULL) return;
     freetree(t->right);
     freetree(t->left);
-    printf("%d\n", t);
     free(t);
 }
-*/
-
+/**/
+  /*
 void freetree(Tree* t)
 {
 	//inital <Tree*> stack
-	Tree * stack[2000000]={NULL};
+	Tree * stack[1200000]={NULL};
 	int i;
-    for (i=0; i<2000000; i++) {stack[i]=NULL;}
+    for (i=0; i<1200000; i++) {stack[i]=NULL;}
     int stack_top= -1;
 	//stack.push(t);
 	stack_top += 1;  
@@ -247,7 +246,7 @@ void freetree(Tree* t)
 		free(topNode);
 	}
 }
-
+    */
 void printtree(Tree * t, int d) {
     //printf("%p\n",t);
     int i;
