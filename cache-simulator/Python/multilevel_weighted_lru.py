@@ -4,9 +4,9 @@ from collections import defaultdict
 from collections import OrderedDict
 from hyperloglog import HyperLogLog
 from datetime import datetime
-# from rank_mattson_rd import Rank_mattson_rd
+from rank_mattson_rd import Rank_mattson_rd
 # from counterstack_rd import CounterStack_rd
-from offline_parda_rd import Offline_parda_rd
+# from offline_parda_rd import Offline_parda_rd
 # from pprint import pprint
 from cache import Cache
 from time import time
@@ -17,8 +17,8 @@ class Multilevel_weighted_lru(Cache):
 
     def __init__(self, vm_ids):
         Cache.__init__(self)
-        self.reuse_distance = Offline_parda_rd()
-        # self.reuse_distance = Rank_mattson_rd()
+        # self.reuse_distance = Offline_parda_rd()
+        self.reuse_distance = Rank_mattson_rd()
         # self.reuse_distance = CounterStack_rd()
         self.vm_ids = vm_ids
         self.no_of_vms = len(vm_ids)
@@ -57,7 +57,7 @@ class Multilevel_weighted_lru(Cache):
         and tell us when to calculate reuse distances and
         reuse intensities
         """
-        self.total_accesses[disk_id] += 1
+        self.total_accesses[disk_id] += 1  # Will be cleared every interval
         self.stats[disk_id]['total_accesses'] += 1
         self.unique_blocks[disk_id].add(str(block_address))
         self.reuse_distance.calculate_rd(disk_id, block_address)
@@ -65,22 +65,30 @@ class Multilevel_weighted_lru(Cache):
 
         if time_of_access > self.timeout:
             self.interval += 1
+
             # Increase the time count
             self.timeout = time_of_access + self.time_interval
 
             # Calculate RD and get annealed values
             rd_values = self.reuse_distance.get_rd_values()
             rd_cdf = hrc_curve.compute_HRC(rd_values)
+            self.calculate_reuse_intensity()
+
+            # Clear interval specific counters
+            self.total_accesses.clear()
+            self.unique_blocks.clear()
+            for vm in self.vm_ids:
+                hyperll = HyperLogLog(0.01)
+                self.unique_blocks[vm] = hyperll
+
             relative_weight_pcie_ssd, relative_weight_ssd = \
                 hrc_curve.multi_tier_anneal(rd_cdf,
+                                            self.ri,
                                             self.maxsize_pcie_ssd,
                                             self.maxsize_ssd)
 
             self.calculate_weight(relative_weight_pcie_ssd,
                                   relative_weight_ssd)
-
-            # Calculate Reuse Intensity
-            self.calculate_reuse_intensity()
 
             if __debug__:
                 with open('log/detailed_stats.log', 'a') as out_file:
