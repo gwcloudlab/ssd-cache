@@ -51,6 +51,16 @@ def multi_tier_anneal(rd_cdf, ri, maxsize_pcie_ssd, maxsize_ssd):
         The rd values should not have all 9999999 values's
     Postcondition:
         Optimal rd vaules for a given cache size
+
+    Data structure of rd_cdf:
+        +------+--------+-------------+
+        | Disk | x_axis | [rd values] |
+        |      | y_axis | [hit rates] |
+        +------+--------+-------------+
+        | Disk | x_axis | [rd values] |
+        |      | y_axis | [hit rates] |
+        +------+--------+-------------+
+
     """
     for disk in rd_cdf:
         if (rd_cdf[disk]['x_axis'][0] > 9999999 or
@@ -63,14 +73,15 @@ def multi_tier_anneal(rd_cdf, ri, maxsize_pcie_ssd, maxsize_ssd):
     for disk in ri:
         short_term[disk] = ri[disk] * cache.alpha_pcie_ssd
 
+    # pcie_hr for the first time will be 0.
     sa_solution, \
         optimal_pcie_rd = calculate_optimal_space(rd_cdf, maxsize_pcie_ssd,
                                                   short_term, pcie_hr)
-    print "PCIe SSD: "
-    print "alpha pcie ssd: ", cache.alpha_pcie_ssd
-    print "RI: ", ri
-    print "Short term: ", short_term
-    print "HR of pcie: ", pcie_hr
+    # print "PCIe SSD: "
+    # print "alpha pcie ssd: ", cache.alpha_pcie_ssd
+    # print "RI: ", ri
+    # print "Short term: ", short_term
+    # print "HR of pcie: ", pcie_hr
 
     short_term.clear()
 
@@ -86,6 +97,9 @@ def multi_tier_anneal(rd_cdf, ri, maxsize_pcie_ssd, maxsize_ssd):
     # >>> hit_rate.extend(optimal_hr * [hit_rate[-1]])
     # >>> hit_rate
     # [0.4, 0.5, 0.6, 0.7, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0]
+    # >>> rd = rd[optimal_hr:]
+    # >>> rd
+    # [4, 5, 6, 7, 8, 9, 9, 9, 9, 9]
 
     for disk, optimal_rd in zip(rd_cdf.keys(), sa_solution):
 
@@ -103,11 +117,11 @@ def multi_tier_anneal(rd_cdf, ri, maxsize_pcie_ssd, maxsize_ssd):
     for disk in ri:
         short_term[disk] = ri[disk] * cache.alpha_ssd
 
-    print "SSD: "
-    print "alpha ssd: ", cache.alpha_ssd
-    print "RI: ", ri
-    print "Short term: ", short_term
-    print "HR of pcie: ", pcie_hr
+    # print "SSD: "
+    # print "alpha ssd: ", cache.alpha_ssd
+    # print "RI: ", ri
+    # print "Short term: ", short_term
+    # print "HR of pcie: ", pcie_hr
 
     sa_solution, optimal_ssd_rd = calculate_optimal_space(rd_cdf, maxsize_ssd,
                                                           short_term, pcie_hr)
