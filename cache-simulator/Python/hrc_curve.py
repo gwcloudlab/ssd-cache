@@ -66,11 +66,11 @@ def multi_tier_anneal(rd_cdf, ri, maxsize_pcie_ssd, maxsize_ssd):
     sa_solution, \
         optimal_pcie_rd = calculate_optimal_space(rd_cdf, maxsize_pcie_ssd,
                                                   short_term, pcie_hr)
-    print "PCIe SSD: "
-    print "alpha pcie ssd: ", cache.alpha_pcie_ssd
-    print "RI: ", ri
-    print "Short term: ", short_term
-    print "HR of pcie: ", pcie_hr
+    # print "PCIe SSD: "
+    # print "alpha pcie ssd: ", cache.alpha_pcie_ssd
+    # print "RI: ", ri
+    # print "Short term: ", short_term
+    # print "HR of pcie: ", pcie_hr
 
     short_term.clear()
 
@@ -103,11 +103,11 @@ def multi_tier_anneal(rd_cdf, ri, maxsize_pcie_ssd, maxsize_ssd):
     for disk in ri:
         short_term[disk] = ri[disk] * cache.alpha_ssd
 
-    print "SSD: "
-    print "alpha ssd: ", cache.alpha_ssd
-    print "RI: ", ri
-    print "Short term: ", short_term
-    print "HR of pcie: ", pcie_hr
+    # print "SSD: "
+    # print "alpha ssd: ", cache.alpha_ssd
+    # print "RI: ", ri
+    # print "Short term: ", short_term
+    # print "HR of pcie: ", pcie_hr
 
     sa_solution, optimal_ssd_rd = calculate_optimal_space(rd_cdf, maxsize_ssd,
                                                           short_term, pcie_hr)

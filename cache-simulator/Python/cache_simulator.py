@@ -73,7 +73,7 @@ def main():
     # all_files = ['hm.csv', 'mds.csv', 'prn.csv', 'proj.csv',
     #              'usr.csv', 'wdev.csv', 'web.csv', 'src.csv']
     # all_files = ['prxy.csv', 'rsrch.csv', 'stg.csv', 'ts.csv']
-    all_files = ['tiny_web.csv']
+    all_files = ['web.csv']
     for name in all_files:
         print "\nInput trace file: ", name
         filename = os.path.join('MSR', name)
