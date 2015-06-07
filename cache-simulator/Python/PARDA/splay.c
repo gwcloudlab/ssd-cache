@@ -216,9 +216,9 @@ void freetree(Tree* t)
 void freetree(Tree* t)
 {
 	//inital <Tree*> stack
-	Tree * stack[1200000]={NULL};
+	Tree * stack[2000000]={NULL};
 	int i;
-    for (i=0; i<1200000; i++) {stack[i]=NULL;}
+    for (i=0; i<2000000; i++) {stack[i]=NULL;}
     int stack_top= -1;
 	//stack.push(t);
 	stack_top += 1;  
@@ -261,7 +261,6 @@ void freetree(Tree* t)
     //while(!stack.empty())
     while(stack_top != -1)
     {
-		//Tree* topNode = stack.top()
 		Tree* topNode=(Tree*) stack[stack_top];	
 		//stack.pop()
 		//printf("1: %d, %d\n", stack_top, topNode);
