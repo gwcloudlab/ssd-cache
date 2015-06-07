@@ -208,10 +208,11 @@ void freetree(Tree* t)
     if(t==NULL) return;
     freetree(t->right);
     freetree(t->left);
+    printf("%d\n", t);
     free(t);
 }
-*/
-  /*
+
+
 void freetree(Tree* t)
 {
 	//inital <Tree*> stack
