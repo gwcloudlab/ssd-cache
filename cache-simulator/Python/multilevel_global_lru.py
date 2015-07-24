@@ -4,6 +4,7 @@ from collections import defaultdict
 from collections import OrderedDict
 from cache import Cache
 from time import time
+import hrc_curve
 
 
 class Multilevel_global_lru(Cache):
@@ -13,6 +14,14 @@ class Multilevel_global_lru(Cache):
         self.vm_ids = vm_ids
         self.no_of_vms = len(vm_ids)
         self.block_lookup = defaultdict(OrderedDict)
+        self.time_interval = 3600
+        self.interval = 0
+        self.timeout = 0
+        self.ri = 0  # To make data consistent in detailstats for pruning
+        default_ssd_weight = int(self.maxsize_ssd / self.no_of_vms)
+        default_pcie_weight = int(self.maxsize_pcie_ssd / self.no_of_vms)
+        self.weight_ssd = defaultdict(lambda: default_ssd_weight)
+        self.weight_pcie_ssd = defaultdict(lambda: default_pcie_weight)
 
     def timing(f):
         def wrap(*args):
@@ -41,6 +50,11 @@ class Multilevel_global_lru(Cache):
                     cache_contents = self.block_lookup[
                                      'pcie_ssd'].popitem(last=False)
                     self.block_lookup['ssd'][UUID] = cache_contents
+                    disk_popped = cache_contents[0][0]
+                    self.weight_pcie_ssd[disk_popped] -= 1
+                    self.weight_ssd[disk_popped] += 1
+                self.weight_ssd[disk_id] -= 1
+                self.weight_pcie_ssd[disk_id] += 1
         else:
             # The item is a miss. So,
             # (1) Add item to pcie
@@ -49,15 +63,34 @@ class Multilevel_global_lru(Cache):
             self.stats[disk_id]['total_miss'] += 1
             cache_contents = Cache_entry()
             self.block_lookup['pcie_ssd'][UUID] = cache_contents
+            self.weight_pcie_ssd[UUID[0]] += 1
             if len(self.block_lookup['pcie_ssd']) > self.maxsize_pcie_ssd:
                 self.stats[disk_id]['pcie_ssd_evicts'] += 1
                 cache_contents = self.block_lookup[
                                 'pcie_ssd'].popitem(last=False)
                 self.block_lookup['ssd'][UUID] = cache_contents
+                self.weight_pcie_ssd[UUID[0]] -= 1
+                self.weight_ssd[UUID[0]] += 1
 
                 if len(self.block_lookup['ssd']) > self.maxsize_ssd:
-                    self.stats[disk_id]['ssd_evicts'] += 1
                     cache_contents = self.block_lookup['ssd'].popitem(last=False)
+                    disk_popped = cache_contents[0][0]
+                    self.stats[disk_popped]['ssd_evicts'] += 1
+                    self.weight_ssd[disk_popped] -= 1
+
+        if time_of_access > self.timeout:
+            self.interval += 1
+
+            # Increase the time count
+            self.timeout = time_of_access + self.time_interval
+
+            if __debug__:
+                with open('log/detailed_stats.log', 'a') as out_file:
+                    out_file.write("Interval," + str(self.interval) + '\n')
+                    out_file.write("pcie_weight," + str(self.weight_pcie_ssd) + '\n')
+                    out_file.write("ssd_weight," + str(self.weight_ssd) + '\n')
+                    out_file.write("reuse_intensity," + str(self.ri) + '\n')
+                    hrc_curve.print_per_interval_stats(self.stats)
 
     def item_in_cache(self, UUID):
         for layer in self.block_lookup.iterkeys():
