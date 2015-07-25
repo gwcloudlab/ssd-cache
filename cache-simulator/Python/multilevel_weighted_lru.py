@@ -38,7 +38,7 @@ class Multilevel_weighted_lru(Cache):
             hyperll = HyperLogLog(0.01)
             self.unique_blocks[vm] = hyperll
         if __debug__:
-            with open('log/detailed_stats.log', 'w') as out_file:
+            with open('log/detailed_stats.log', 'a') as out_file:
                 out_file.write('Algorithm,Multi-level-weighted-LRU\n')
                 out_file.write('CurrentTime,' + str(datetime.now()) + '\n')
 
