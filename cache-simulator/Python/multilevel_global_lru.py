@@ -4,6 +4,7 @@ from collections import defaultdict
 from collections import OrderedDict
 from cache import Cache
 from time import time
+from datetime import datetime
 import hrc_curve
 
 
@@ -22,6 +23,10 @@ class Multilevel_global_lru(Cache):
         default_pcie_weight = int(self.maxsize_pcie_ssd / self.no_of_vms)
         self.weight_ssd = defaultdict(lambda: default_ssd_weight)
         self.weight_pcie_ssd = defaultdict(lambda: default_pcie_weight)
+        if __debug__:
+            with open('log/detailed_stats.log', 'a') as out_file:
+                out_file.write('Algorithm,Multi-level-global-LRU\n')
+                out_file.write('CurrentTime,' + str(datetime.now()) + '\n')
 
     def timing(f):
         def wrap(*args):
