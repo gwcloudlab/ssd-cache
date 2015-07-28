@@ -122,9 +122,9 @@ class Multilevel_weighted_lru(Cache):
             self.stats[disk_id][str(cache_layer) + '_hits'] += 1
             if cache_layer == 'pcie_ssd':
                 cache_contents = self.block_lookup[disk_id][
-                                   cache_layer].pop(block_address)
+                    cache_layer].pop(block_address)
                 self.block_lookup[disk_id][
-                                 cache_layer][block_address] = cache_contents
+                    cache_layer][block_address] = cache_contents
             else:
                 removed_item = self.remove_item_from_cache('ssd',
                                                            disk_id,
@@ -173,7 +173,7 @@ class Multilevel_weighted_lru(Cache):
         if disk_id is None:
             disk_id = self.find_id_to_evict(cache_layer)
             block_address, rd = self.block_lookup[disk_id][
-                                cache_layer].popitem(last=False)
+                cache_layer].popitem(last=False)
         else:
             del self.block_lookup[disk_id][cache_layer][block_address]
 
