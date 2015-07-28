@@ -178,6 +178,73 @@ def write_infile_for_sim_anneal(rd_cdf, maxsize, short_term, pcie_hr):
                                ' ' + str('%.2f' % x) + '\n')
 
 
+def multi_tier_combined_anneal(rd_cdf, maxsize_pcie_ssd, maxsize_ssd):
+
+    for disk in rd_cdf:
+        if (rd_cdf[disk]['x_axis'][0] > 9999999 or
+                rd_cdf[disk]['y_axis'][-1] == 0):
+            rd_cdf[disk]['x_axis'] = len(rd_cdf[disk]['x_axis'])*[0]
+
+    # short_term_pcie = defaultdict(lambda: 0)
+    # short_term_ssd = defaultdict(lambda: 0)
+    # pcie_hr = defaultdict(lambda: 0)
+
+    # for disk in ri:
+        # short_term_pcie[disk] = ri[disk] * cache.alpha_pcie_ssd
+        # short_term_ssd[disk] = ri[disk] * cache.alpha_ssd
+
+    # pcie_hr for the first time will be 0.
+    # sa_solution, \
+        # optimal_pcie_rd = calculate_optimal_space(rd_cdf, maxsize_pcie_ssd,
+                                                  # short_term, pcie_hr)
+    # print "PCIe SSD: "
+    # print "alpha pcie ssd: ", cache.alpha_pcie_ssd
+    # print "RI: ", ri
+    # print "Short term: ", short_term
+    # print "HR of pcie: ", pcie_hr
+
+    n_cdf_points = 200
+    n_cache_layers = 2
+    pcie_space = defaultdict(list)
+    ssd_space = defaultdict(list)
+    with open(os.path.join('traces', 'wlru.dat'), 'w') as out_file:
+        out_file.write(' ' + str(len(rd_cdf)) +
+                       ' ' + str(n_cdf_points) +
+                       ' ' + str(n_cache_layers) + '\n' +
+                       ' ' + str(maxsize_pcie_ssd) +
+                       ' ' + str(maxsize_ssd) + '\n')
+        for disk in rd_cdf.iterkeys():
+            out_file.write(' ' + str(disk + 1) + '\n')
+            counter = 0
+            for x, y in zip(rd_cdf[disk]['x_axis'], rd_cdf[disk]['y_axis']):
+                # y = y + short_term[disk]
+                counter += 1
+                pause_x = x
+                if counter > 100:
+                    pause_x = rd_cdf[disk]['x_axis'][100]
+                pcie_space[disk].append(pause_x)
+                ssd_space[disk].append(x)
+                pcie_space[disk].extend(100 * [pcie_space[disk][-1]])
+                y *= 100
+                out_file.write(' ' + str('%.2f' % y) +
+                               ' ' + str('%.2f' % pause_x) +
+                               ' ' + str('%.2f' % x) + '\n')
+
+    os.system("./sim_anneal")
+    sa_solution = [line.strip() for line in open("sa_solution.txt", 'r')]
+    sa_solution = map(int, sa_solution)
+
+    optimal_pcie_space = {}
+    optimal_ssd_space = {}
+    optimal_hr = {}
+    for disk, optimal_rd in zip(rd_cdf.keys(), sa_solution):
+        optimal_pcie_space[disk] = pcie_space[disk][optimal_rd]
+        optimal_ssd_space[disk] = ssd_space[disk][optimal_rd]
+        optimal_hr[disk] = rd_cdf[disk]['y_axis'][optimal_rd]
+
+    return (optimal_pcie_space, optimal_ssd_space)
+
+
 def single_tier_anneal(rd_cdf, maxsize_ssd):
 
     """
