@@ -19,10 +19,8 @@ class Multilevel_global_lru(Cache):
         self.interval = 0
         self.timeout = 0
         self.ri = 0  # To make data consistent in detailstats for pruning
-        default_ssd_weight = int(self.maxsize_ssd / self.no_of_vms)
-        default_pcie_weight = int(self.maxsize_pcie_ssd / self.no_of_vms)
-        self.weight_ssd = defaultdict(lambda: default_ssd_weight)
-        self.weight_pcie_ssd = defaultdict(lambda: default_pcie_weight)
+        self.weight_ssd = defaultdict(lambda: 0)
+        self.weight_pcie_ssd = defaultdict(lambda: 0)
         if __debug__:
             with open('log/detailed_stats.log', 'a') as out_file:
                 out_file.write('Algorithm,Multi-level-global-LRU\n')
@@ -53,13 +51,9 @@ class Multilevel_global_lru(Cache):
                 # add an evicted item from pcie to ssd and evict ssd's lru item
                 if len(self.block_lookup['pcie_ssd']) > self.maxsize_pcie_ssd:
                     cache_contents = self.block_lookup[
-                                     'pcie_ssd'].popitem(last=False)
+                        'pcie_ssd'].popitem(last=False)
                     self.block_lookup['ssd'][UUID] = cache_contents
                     disk_popped = cache_contents[0][0]
-                    self.weight_pcie_ssd[disk_popped] -= 1
-                    self.weight_ssd[disk_popped] += 1
-                self.weight_ssd[disk_id] -= 1
-                self.weight_pcie_ssd[disk_id] += 1
         else:
             # The item is a miss. So,
             # (1) Add item to pcie
@@ -68,26 +62,33 @@ class Multilevel_global_lru(Cache):
             self.stats[disk_id]['total_miss'] += 1
             cache_contents = Cache_entry()
             self.block_lookup['pcie_ssd'][UUID] = cache_contents
-            self.weight_pcie_ssd[UUID[0]] += 1
             if len(self.block_lookup['pcie_ssd']) > self.maxsize_pcie_ssd:
                 self.stats[disk_id]['pcie_ssd_evicts'] += 1
                 cache_contents = self.block_lookup[
-                                'pcie_ssd'].popitem(last=False)
+                    'pcie_ssd'].popitem(last=False)
                 self.block_lookup['ssd'][UUID] = cache_contents
-                self.weight_pcie_ssd[UUID[0]] -= 1
-                self.weight_ssd[UUID[0]] += 1
+                disk_popped = cache_contents[0][0]
 
                 if len(self.block_lookup['ssd']) > self.maxsize_ssd:
                     cache_contents = self.block_lookup['ssd'].popitem(last=False)
                     disk_popped = cache_contents[0][0]
                     self.stats[disk_popped]['ssd_evicts'] += 1
-                    self.weight_ssd[disk_popped] -= 1
 
         if time_of_access > self.timeout:
             self.interval += 1
 
             # Increase the time count
             self.timeout = time_of_access + self.time_interval
+
+            self.weight_ssd = defaultdict(lambda: 0)
+            self.weight_pcie_ssd = defaultdict(lambda: 0)
+
+            for layer, vms in self.block_lookup.iteritems():
+                for vm in vms.iterkeys():
+                    if layer == 'pcie_ssd':
+                        self.weight_pcie_ssd[vm[0]] += 1
+                    else:
+                        self.weight_ssd[vm[0]] += 1
 
             if __debug__:
                 with open('log/detailed_stats.log', 'a') as out_file:
