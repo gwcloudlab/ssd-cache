@@ -291,16 +291,16 @@ def draw_figure(name, nested_dict):
     gc.collect()
 
 
-def print_per_interval_stats(stats):
+def print_per_interval_stats(stats, out_file):
 
-    with open(os.path.join('log', 'detailed_stats.log'), 'a') as out_file:
-        for disk in stats.iterkeys():
-            out_file.write('Disk,' + str(disk) + '\n')
-            for k, v in stats[disk].iteritems():
-                out_file.write(k + ',' + str(v) + '\n')
-            hitrate = (stats[disk]['total_hits'] /
-                       stats[disk]['total_accesses']) * 100
-            out_file.write('Hit Rate,' + str('%.2f' % hitrate) + '\n')
+    # with open(os.path.join('log', 'detailed_stats.log'), 'a') as out_file:
+    for disk in stats.iterkeys():
+        out_file.write('Disk,' + str(disk) + '\n')
+        for k, v in stats[disk].iteritems():
+            out_file.write(k + ',' + str(v) + '\n')
+        hitrate = (stats[disk]['total_hits'] /
+                   stats[disk]['total_accesses']) * 100
+        out_file.write('Hit Rate,' + str('%.2f' % hitrate) + '\n')
 
 
 def print_stats(metadata, stats):
