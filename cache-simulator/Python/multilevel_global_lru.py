@@ -2,9 +2,10 @@ from __future__ import division
 from cache_entry import Cache_entry
 from collections import defaultdict
 from collections import OrderedDict
+from datetime import datetime
+from pprint import pprint
 from cache import Cache
 from time import time
-from datetime import datetime
 import hrc_curve
 
 
@@ -18,11 +19,15 @@ class Multilevel_global_lru(Cache):
         self.time_interval = 3600
         self.interval = 0
         self.timeout = 0
-        self.ri = 0  # To make data consistent in detailstats for pruning
+        self.ri = defaultdict()  # To make data consistent in detailstats for pruning
         self.weight_ssd = defaultdict(lambda: 0)
         self.weight_pcie_ssd = defaultdict(lambda: 0)
+        for vm in self.vm_ids:
+            self.ri[vm] = 0
+            self.weight_ssd[vm] = 0
+            self.weight_pcie_ssd[vm] = 0
         if __debug__:
-            with open('log/detailed_stats.log', 'a') as out_file:
+            with open('log/detailed_stats_global.log', 'a') as out_file:
                 out_file.write('Algorithm,Multi-level-global-LRU\n')
                 out_file.write('CurrentTime,' + str(datetime.now()) + '\n')
 
@@ -93,10 +98,13 @@ class Multilevel_global_lru(Cache):
             if __debug__:
                 with open('log/detailed_stats.log', 'a') as out_file:
                     out_file.write("Interval," + str(self.interval) + '\n')
-                    out_file.write("pcie_weight," + str(self.weight_pcie_ssd) + '\n')
-                    out_file.write("ssd_weight," + str(self.weight_ssd) + '\n')
-                    out_file.write("reuse_intensity," + str(self.ri) + '\n')
-                    hrc_curve.print_per_interval_stats(self.stats)
+                    out_file.write("pcie_weight,")
+                    pprint(dict(self.weight_pcie_ssd), out_file)
+                    out_file.write("ssd_weight,")
+                    pprint(dict(self.weight_ssd), out_file)
+                    out_file.write("reuse_intensity,")
+                    pprint(dict(self.ri), out_file)
+                    hrc_curve.print_per_interval_stats(self.stats, out_file)
 
     def item_in_cache(self, UUID):
         for layer in self.block_lookup.iterkeys():

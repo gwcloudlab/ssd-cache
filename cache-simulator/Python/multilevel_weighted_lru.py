@@ -7,10 +7,10 @@ from datetime import datetime
 # from rank_mattson_rd import Rank_mattson_rd
 # from counterstack_rd import CounterStack_rd
 from offline_parda_rd import Offline_parda_rd
-# from pprint import pprint
 from cache import Cache
 from time import time
 import hrc_curve
+from pprint import pprint
 
 
 class Multilevel_weighted_lru(Cache):
@@ -34,6 +34,10 @@ class Multilevel_weighted_lru(Cache):
         default_pcie_weight = int(self.maxsize_pcie_ssd / self.no_of_vms)
         self.weight_pcie_ssd = defaultdict(lambda: default_pcie_weight)
         self.weight_ssd = defaultdict(lambda: default_ssd_weight)
+        for vm in self.vm_ids:
+            self.weight_pcie_ssd[vm] = default_pcie_weight
+            self.weight_ssd[vm] = default_ssd_weight
+
         for vm in self.vm_ids:
             hyperll = HyperLogLog(0.01)
             self.unique_blocks[vm] = hyperll
@@ -91,12 +95,15 @@ class Multilevel_weighted_lru(Cache):
                                   relative_weight_ssd)
 
             if __debug__:
-                with open('log/detailed_stats.log', 'a') as out_file:
+                with open('log/detailed_stats_weighted.log', 'a') as out_file:
                     out_file.write("Interval," + str(self.interval) + '\n')
-                    out_file.write("pcie_weight," + str(self.weight_pcie_ssd) + '\n')
-                    out_file.write("ssd_weight," + str(self.weight_ssd) + '\n')
-                    out_file.write("reuse_intensity," + str(self.ri) + '\n')
-                    hrc_curve.print_per_interval_stats(self.stats)
+                    out_file.write("pcie_weight,")
+                    pprint(dict(self.weight_pcie_ssd), out_file)
+                    out_file.write("ssd_weight,")
+                    pprint(dict(self.weight_ssd), out_file)
+                    out_file.write("reuse_intensity,")
+                    pprint(dict(self.ri), out_file)
+                    hrc_curve.print_per_interval_stats(self.stats, out_file)
                     # print "\t RI: ", self.ri
 
     def calculate_reuse_intensity(self):
