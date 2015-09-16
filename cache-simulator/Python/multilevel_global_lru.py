@@ -20,8 +20,8 @@ class Multilevel_global_lru(Cache):
         self.interval = 0
         self.timeout = 0
         self.ri = defaultdict()  # To make data consistent in detailstats for pruning
-        self.weight_ssd = defaultdict(lambda: 0)
-        self.weight_pcie_ssd = defaultdict(lambda: 0)
+        # self.weight_ssd = defaultdict(lambda: 0)
+        # self.weight_pcie_ssd = defaultdict(lambda: 0)
         for vm in self.vm_ids:
             self.ri[vm] = 0
             self.weight_ssd[vm] = 0
@@ -85,8 +85,9 @@ class Multilevel_global_lru(Cache):
             # Increase the time count
             self.timeout = time_of_access + self.time_interval
 
-            self.weight_ssd = defaultdict(lambda: 0)
-            self.weight_pcie_ssd = defaultdict(lambda: 0)
+            for vm in self.vm_ids:
+                self.weight_ssd[vm] = 0
+                self.weight_pcie_ssd[vm] = 0
 
             for layer, vms in self.block_lookup.iteritems():
                 for vm in vms.iterkeys():
@@ -96,7 +97,7 @@ class Multilevel_global_lru(Cache):
                         self.weight_ssd[vm[0]] += 1
 
             if __debug__:
-                with open('log/detailed_stats.log', 'a') as out_file:
+                with open('log/detailed_stats_global.log', 'a') as out_file:
                     out_file.write("Interval," + str(self.interval) + '\n')
                     out_file.write("pcie_weight,")
                     pprint(dict(self.weight_pcie_ssd), out_file)

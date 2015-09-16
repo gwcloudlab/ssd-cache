@@ -293,7 +293,6 @@ def draw_figure(name, nested_dict):
 
 def print_per_interval_stats(stats, out_file):
 
-    # with open(os.path.join('log', 'detailed_stats.log'), 'a') as out_file:
     for disk in stats.iterkeys():
         out_file.write('Disk,' + str(disk) + '\n')
         for k, v in stats[disk].iteritems():
