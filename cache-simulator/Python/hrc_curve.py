@@ -270,6 +270,16 @@ def draw_figure(name, nested_dict):
     lines = ['-', '--', '-.', ':']
     linecycler = cycle(lines)
 
+    # with open("hrc_curve.data", 'w') as write_handler:
+    for disk in nested_dict.iterkeys():
+        filename = name + str(disk)
+        with open(filename, 'w') as write_handler:
+            for item in zip(nested_dict[disk]['x_axis'], nested_dict[disk]['y_axis']):
+                write_handler.write(str(item[0]) + "," + str(item[1]) + "\n")
+            # write_handler.write(str(nested_dict[disk]['x_axis']))
+            # write_handler.write("\n")
+            # write_handler.write(str(nested_dict[disk]['y_axis']))
+
     for disk in nested_dict.iterkeys():
         plt.plot(nested_dict[disk]['x_axis'], nested_dict[disk]['y_axis'],
                  next(linecycler),
