@@ -23,8 +23,10 @@ class Multilevel_weighted_lru(Cache):
         self.vm_ids = vm_ids
         self.no_of_vms = len(vm_ids)
         self.interval = 0
-        self.time_interval = 3600
-        self.timeout = 0
+        self.rd_time_interval = 3600
+        self.ri_time_interval = 600
+        self.rd_timeout = 0
+        self.ri_timeout = 0
         self.ri = defaultdict()
         self.block_lookup = defaultdict(lambda: defaultdict(OrderedDict))
         self.size_lookup = defaultdict(lambda: 0)
@@ -67,16 +69,20 @@ class Multilevel_weighted_lru(Cache):
         self.reuse_distance.calculate_rd(disk_id, block_address)
         self.handle_hit_miss_evict(disk_id, block_address)
 
-        if time_of_access > self.timeout:
+        if time_of_access > self.ri_timeout:
+            self.ri_timeout = time_of_access + self.ri_time_interval
+            self.calculate_reuse_intensity()
+            # Not clearing unique blocks until RD's timeout is done
+
+        if time_of_access > self.rd_timeout:
             self.interval += 1
 
             # Increase the time count
-            self.timeout = time_of_access + self.time_interval
+            self.rd_timeout = time_of_access + self.rd_time_interval
 
             # Calculate RD and get annealed values
             rd_values = self.reuse_distance.get_rd_values()
             rd_cdf = hrc_curve.compute_HRC(rd_values)
-            self.calculate_reuse_intensity()
 
             # Clear interval specific counters
             self.total_accesses.clear()
