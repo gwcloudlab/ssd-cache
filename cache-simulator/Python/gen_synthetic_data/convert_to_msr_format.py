@@ -1,11 +1,11 @@
 from random import randint
 import csv
 
-with open("zipf.data", 'r') as infile:
+with open("zipf.dat", 'r') as infile:
     zipf = infile.readlines()
 counter = 0
 time = 0
-with open("synthetic_zipf.data", 'w') as outfile:
+with open("synthetic_zipf.csv", 'w') as outfile:
     a = csv.writer(outfile, delimiter=',')
     for block in zipf:
         counter += 1
