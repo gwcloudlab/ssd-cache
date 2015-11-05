@@ -31,7 +31,9 @@ class Multilevel_weighted_lru(Cache):
         self.block_lookup = defaultdict(lambda: defaultdict(OrderedDict))
         self.size_lookup = defaultdict(lambda: 0)
         self.total_accesses = defaultdict(lambda: 0)
+        self.total_accesses_ri = defaultdict(lambda: 0)
         self.unique_blocks = defaultdict()
+        self.unique_blocks_ri = defaultdict()
         default_ssd_weight = int(self.maxsize_ssd / self.no_of_vms)
         default_pcie_weight = int(self.maxsize_pcie_ssd / self.no_of_vms)
         self.weight_pcie_ssd = defaultdict(lambda: default_pcie_weight)
@@ -43,6 +45,11 @@ class Multilevel_weighted_lru(Cache):
         for vm in self.vm_ids:
             hyperll = HyperLogLog(0.01)
             self.unique_blocks[vm] = hyperll
+
+        for vm in self.vm_ids:
+            hyperll = HyperLogLog(0.01)
+            self.unique_blocks_ri[vm] = hyperll
+
         if __debug__:
             with open('log/detailed_stats_weighted.log', 'a') as out_file:
                 out_file.write('Algorithm,Multi-level-weighted-LRU\n')
@@ -64,15 +71,22 @@ class Multilevel_weighted_lru(Cache):
         reuse intensities
         """
         self.total_accesses[disk_id] += 1  # Will be cleared every interval
+        self.total_accesses_ri[disk_id] += 1  # Will be cleared every interval
         self.stats[disk_id]['total_accesses'] += 1
         self.unique_blocks[disk_id].add(str(block_address))
+        self.unique_blocks_ri[disk_id].add(str(block_address))
         self.reuse_distance.calculate_rd(disk_id, block_address)
         self.handle_hit_miss_evict(disk_id, block_address)
 
         if time_of_access > self.ri_timeout:
             self.ri_timeout = time_of_access + self.ri_time_interval
             self.calculate_reuse_intensity()
-            # Not clearing unique blocks until RD's timeout is done
+            # Clear interval specific counters
+            self.total_accesses_ri.clear()
+            self.unique_blocks_ri.clear()
+            for vm in self.vm_ids:
+                hyperll = HyperLogLog(0.01)
+                self.unique_blocks_ri[vm] = hyperll
 
         if time_of_access > self.rd_timeout:
             self.interval += 1
@@ -113,12 +127,12 @@ class Multilevel_weighted_lru(Cache):
 
     def calculate_reuse_intensity(self):
         for disk in self.vm_ids:
-            unique_element_count = len(self.unique_blocks[disk])
+            unique_element_count = len(self.unique_blocks_ri[disk])
             if unique_element_count == 0:
                 self.ri[disk] = 0
             else:
                 self.ri[disk] = 1 - (unique_element_count /
-                                     self.total_accesses[disk])
+                                     self.total_accesses_ri[disk])
 
     def item_in_cache(self, disk_id, block_address):
         for layer in self.block_lookup[disk_id].keys():
