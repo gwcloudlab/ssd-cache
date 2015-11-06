@@ -272,7 +272,7 @@ def draw_figure(name, nested_dict):
 
     # with open("hrc_curve.data", 'w') as write_handler:
     for disk in nested_dict.iterkeys():
-        filename = name + str(disk)
+        filename = name + str(disk) + ".csv"
         with open(filename, 'w') as write_handler:
             for item in zip(nested_dict[disk]['x_axis'], nested_dict[disk]['y_axis']):
                 write_handler.write(str(item[0]) + "," + str(item[1]) + "\n")
