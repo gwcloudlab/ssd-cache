@@ -19,7 +19,7 @@ maximize sum(i in items, j in values) x[i][j] * p[i][j];
 // constraints
 subject to{
 
-forall(i in items) sum(j in values) x[i][j] * w[j] <= Capacity;
+sum(i in items, j in values) x[i][j] * w[j] <= Capacity;
 forall(i in items) sum(j in values) x[i][j] <= 1;
 
 }
