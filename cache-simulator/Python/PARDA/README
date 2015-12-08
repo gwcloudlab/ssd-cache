@@ -7,7 +7,12 @@ A) Setup and compile
 Step 0: parda use glib standard linux library. If on ubuntu system just execute following sudo command.
 sudo apt-get install glib-2.0
 
-Step 1: compile the program into so file. 
+Step 1: compile the program into so file.
+
+Use this:
+gcc -Wall  -O2 `pkg-config --cflags glib-2.0` `pkg-config --libs glib-2.0` -o parda.so -shared -fPIC splay.c parda.c parda_print.c narray.c -pthread -lgthread-2.0 -lglib-2.0
+
+Not this:
 gcc -Wall  -O2 -I/usr/include/glib-2.0 -I/usr/lib/i386-linux-gnu/glib-2.0/include   -o parda.so -shared -fPIC splay.c parda.c parda_print.c narray.c -pthread -lgthread-2.0 -lglib-2.0
 
 gcc -Wall  -O2 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -o parda.so -shared -fPIC splay.c parda.c parda_print.c narray.c -pthread -lgthread-2.0 -lglib-2.0
