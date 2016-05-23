@@ -6,7 +6,7 @@ from cache_entry import Cache_entry
 from operator import itemgetter
 from cache import Cache
 import hyperloglog
-import hrc_curve
+import utils
 import time
 
 
@@ -50,9 +50,9 @@ class Weighted_lru(Cache):
             self.timeout = time_of_access + self.time_interval
             self.calculate_reuse_intensity()
             rd_values = self.reuse_distance.get_rd_values()
-            rd_cdf = hrc_curve.compute_HRC(rd_values)
+            rd_cdf = utils.compute_HRC(rd_values)
             relative_weight_ssd = \
-                hrc_curve.single_tier_anneal(rd_cdf, self.maxsize)
+                utils.single_tier_anneal(rd_cdf, self.maxsize)
             self.calculate_weight(relative_weight_ssd)
 
         if (block_address in self.ssd[disk_id]):

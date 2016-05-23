@@ -1,3 +1,6 @@
+"""
+This file converts the output from mapreduce to MSR format
+"""
 import sys
 import csv
 
@@ -15,8 +18,7 @@ with open(output_filename, "wb") as wr:
             block_address = int(item[1])
             read_size = int(item[2])
             hostname = "mr"
-            disk_id = 5 # Should we change this???
+            disk_id = 5  # Should we change this???
             operation = "Read"
             response_time = 0
             writr.writerow([time_of_access, hostname, disk_id, operation, block_address, read_size, response_time])
-

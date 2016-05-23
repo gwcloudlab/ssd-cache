@@ -17,7 +17,7 @@ import os
 from multilevel_weighted_lru import Multilevel_weighted_lru
 from timeit import Timer
 from datetime import datetime
-import hrc_curve
+import utils
 
 
 def run(world, filename):
@@ -95,7 +95,7 @@ def main():
             t = Timer(lambda: run(world, filename))
             metalog['Algorithm used'] = world.__class__.__name__
             metalog['Run Time'] = ('%.2f' % t.timeit(number=1))
-            hrc_curve.print_stats(metalog, world.stats)
+            utils.print_stats(metalog, world.stats)
 
 if __name__ == '__main__':
     main()

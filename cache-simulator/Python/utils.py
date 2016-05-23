@@ -1,3 +1,6 @@
+"""
+This file contains all the utility functions to be used by our algorithm.
+"""
 from __future__ import division
 from collections import defaultdict
 from statsmodels import api as sm

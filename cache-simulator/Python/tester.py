@@ -5,7 +5,7 @@ from naive_rd import Naive_rd
 # from offline_parda_rd import Offline_parda_rd
 # from basic_shards_rd import Basic_shards_rd
 from time import time
-import hrc_curve
+import utils
 # import cProfile
 import csv
 import sys
@@ -42,10 +42,10 @@ def run(algorithm, filename):
             # if time_of_access > timeout:
             # timeout = time_of_access + time_interval
     rd_values = algorithm.get_rd_values()
-    rd_cdf = hrc_curve.compute_HRC(rd_values)
+    rd_cdf = utils.compute_HRC(rd_values)
     # annealed_values = hrc_curve.single_tier_anneal(rd_cdf)
     # print annealed_values
-    hrc_curve.draw_figure('Naive', rd_cdf)
+    utils.draw_figure('Naive', rd_cdf)
 
 
 def main():

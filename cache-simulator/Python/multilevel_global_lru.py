@@ -6,7 +6,7 @@ from datetime import datetime
 from pprint import pprint
 from cache import Cache
 from time import time
-import hrc_curve
+import utils
 
 
 class Multilevel_global_lru(Cache):
@@ -105,7 +105,7 @@ class Multilevel_global_lru(Cache):
                     pprint(dict(self.weight_ssd), out_file)
                     out_file.write("reuse_intensity,")
                     pprint(dict(self.ri), out_file)
-                    hrc_curve.print_per_interval_stats(self.stats, out_file)
+                    utils.print_per_interval_stats(self.stats, out_file)
 
     def item_in_cache(self, UUID):
         for layer in self.block_lookup.iterkeys():

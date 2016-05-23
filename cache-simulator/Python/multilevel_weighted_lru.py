@@ -9,7 +9,7 @@ from datetime import datetime
 from offline_parda_rd import Offline_parda_rd
 from cache import Cache
 from time import time
-import hrc_curve
+import utils
 from pprint import pprint
 
 
@@ -96,7 +96,7 @@ class Multilevel_weighted_lru(Cache):
 
             # Calculate RD and get annealed values
             rd_values = self.reuse_distance.get_rd_values()
-            rd_cdf = hrc_curve.compute_HRC(rd_values)
+            rd_cdf = utils.compute_HRC(rd_values)
 
             # Clear interval specific counters
             self.total_accesses.clear()
@@ -106,10 +106,10 @@ class Multilevel_weighted_lru(Cache):
                 self.unique_blocks[vm] = hyperll
 
             relative_weight_pcie_ssd, relative_weight_ssd = \
-                hrc_curve.multi_tier_anneal(rd_cdf,
-                                            self.ri,
-                                            self.maxsize_pcie_ssd,
-                                            self.maxsize_ssd)
+                utils.multi_tier_anneal(rd_cdf,
+                                        self.ri,
+                                        self.maxsize_pcie_ssd,
+                                        self.maxsize_ssd)
 
             self.calculate_weight(relative_weight_pcie_ssd,
                                   relative_weight_ssd)
@@ -123,7 +123,7 @@ class Multilevel_weighted_lru(Cache):
                     pprint(dict(self.weight_ssd), out_file)
                     out_file.write("reuse_intensity,")
                     pprint(dict(self.ri), out_file)
-                    hrc_curve.print_per_interval_stats(self.stats, out_file)
+                    utils.print_per_interval_stats(self.stats, out_file)
 
     def calculate_reuse_intensity(self):
         for disk in self.vm_ids:
