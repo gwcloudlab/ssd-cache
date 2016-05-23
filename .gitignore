@@ -4,6 +4,7 @@
 *.txt
 *~
 *.backup
+*.o
 *.so
 *.csv
 *.trace
@@ -14,7 +15,7 @@ traces/
 .DS_Store
 
 # Latex files
- 
+
 *.aux
 *.glo
 *.idx
@@ -43,7 +44,7 @@ traces/
 *.out
 *.synctex.gz
 *.pdf
- 
+
 # Mac IDE files
 *.swp
 *~
@@ -51,6 +52,6 @@ traces/
 Backup[ ]of[ ]*.pages/
 Backup[ ]of[ ]*.key/
 Backup[ ]of[ ]*.numbers/
- 
+
 # Mac finder files and hidden folders
 .DS_Store
